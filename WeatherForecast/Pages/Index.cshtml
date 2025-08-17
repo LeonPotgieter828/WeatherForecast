@@ -16,6 +16,8 @@
     <p>hourly times for the week: @item</p> 
 }
 
+<p>@Model.nested.Location.City</p>
+
 @for(int i = 0; i < Model.nested.DlForecast.MaxTempareture.Count; i++)
 {
     <p>Date: @Model.nested.DlForecast.Date[i]</p>
@@ -24,6 +26,8 @@
     <p>Wind Speed: @Model.nested.DlForecast.WindSpeed[i]</p>
     <p>Rain Sum: @Model.nested.DlForecast.RainSum[i]</p>
 }
+
+
 
 
 

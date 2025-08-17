@@ -14,5 +14,8 @@ namespace WeatherForecast.ViewModels
 
         [JsonPropertyName("daily")]
         public DailyViewModel DlForecast { get; set; }
+
+        [JsonPropertyName("address")]
+        public LocationViewModel Location { get; set; }
     }
 }
