@@ -13,6 +13,6 @@ namespace WeatherForecast.ViewModels
         public HourlyViewModel HrForecast { get; set; }
 
         [JsonPropertyName("daily")]
-        public Daily DlForecast { get; set; }
+        public DailyViewModel DlForecast { get; set; }
     }
 }

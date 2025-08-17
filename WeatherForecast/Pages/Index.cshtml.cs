@@ -23,7 +23,8 @@ namespace WeatherForecast.Pages
             nested = new NestedForecast
             {
                 CrForecast = await CurrentWeather(),
-                HrForecast = await HourlyWeather()
+                HrForecast = await HourlyWeather(),
+                DlForecast = await DailyWeather()
             };
         }
 
@@ -60,6 +61,19 @@ namespace WeatherForecast.Pages
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json); 
                 return Hours(hourlyWeather);
+            }
+            return null;
+        }
+
+        public async Task<DailyViewModel> DailyWeather()
+        {
+            using HttpClient client = new HttpClient();
+            var getResponse = await client.GetAsync(url);
+            if (getResponse.IsSuccessStatusCode)
+            {
+                var json = await getResponse.Content.ReadAsStringAsync();
+                var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                return dailyWeather.DlForecast;
             }
             return null;
         }
