@@ -1,0 +1,14 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Welcome to Weathery Weather</h1>
+<label>Weather of Today</label>
+<p id="Region&City"></p>
+<p>@Model.currentForecast.Tempareture</p>
+<p>@Model.currentForecast.WindDirection</p>
+<p>@Model.currentForecast.WindSpeed</p>
+
+
