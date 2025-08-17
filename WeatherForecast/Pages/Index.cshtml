@@ -7,8 +7,15 @@
 <h1>Welcome to Weathery Weather</h1>
 <label>Weather of Today</label>
 <p id="Region&City"></p>
-<p>@Model.currentForecast.Tempareture</p>
-<p>@Model.currentForecast.WindDirection</p>
-<p>@Model.currentForecast.WindSpeed</p>
+<p>Temp: @Model.nested.CrForecast.Tempareture</p>
+<p>Wind Direction: @Model.nested.CrForecast.WindDirection</p>
+<p>Wind Speed: @Model.nested.CrForecast.WindSpeed km/h</p>
+
+@foreach (var item in Model.nested.HrForecast.Time)
+{
+    <p>hourly times for the week: @item</p> 
+}
+
+
 
 
