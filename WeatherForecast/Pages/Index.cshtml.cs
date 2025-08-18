@@ -34,14 +34,14 @@ namespace WeatherForecast.Pages
         public async Task OnGet()
         {
             nested = await BuildForecastAsync(SearchName);
-            _db.AddOrUpdateHourly(_forecast, nested);
+            _db.StoreAndUpdate(_forecast, nested);
 
         }
 
         public async Task<IActionResult> OnPost()
         {
             nested = await BuildForecastAsync(SearchName);
-            _db.AddOrUpdateHourly(_forecast, nested);
+            _db.StoreAndUpdate(_forecast, nested);
             return Page();
         }
         private async Task<NestedForecast> BuildForecastAsync(string searchName)

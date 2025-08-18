@@ -7,6 +7,14 @@ namespace WeatherForecast.Operations
     public class DbOperations
     {
 
+        public void StoreAndUpdate(ForecastDbContext _forecast, NestedForecast nested)
+        {
+            AddLocation(_forecast, nested);
+            AddOrUpdateCurrent(_forecast, nested);
+            AddOrUpdateHourly(_forecast, nested);
+            AddOrUpdateDialy(_forecast, nested);
+        }
+
         public void AddOrUpdateDialy(ForecastDbContext _forecast, NestedForecast nested)
         {
             var getLocation = GetLocationID(_forecast, nested);
@@ -21,7 +29,7 @@ namespace WeatherForecast.Operations
             }
         }
 
-        public bool AddOrUpdateHourly(ForecastDbContext _forecast, NestedForecast nested)
+        public void AddOrUpdateHourly(ForecastDbContext _forecast, NestedForecast nested)
         {
             var location = GetLocationID(_forecast, nested);
             var locationID = _forecast.Hourly.Any(x => x.LocationID == location);
@@ -33,9 +41,21 @@ namespace WeatherForecast.Operations
             {
                 UpdateHourly(_forecast, nested);
             }
-            return !locationID;
         }
 
+        public void AddOrUpdateCurrent(ForecastDbContext _forecast, NestedForecast nested)
+        {
+            var location = GetLocationID(_forecast, nested);
+            var locationID = _forecast.Current.Any(x => x.LocationID == location);
+            if (!locationID)
+            {
+                AddCurrent(_forecast, nested);
+            }
+            else
+            {
+                UpdateCurrent(_forecast, nested);
+            }
+        }
 
         public void AddLocation(ForecastDbContext _forecast, NestedForecast nested)
         {
@@ -68,6 +88,23 @@ namespace WeatherForecast.Operations
                 IsDayTime = current.IsDayTime == 1,
             };
             _forecast.Add(currentDb);
+            _forecast.SaveChanges();
+        }
+
+        public void UpdateCurrent(ForecastDbContext _forecast, NestedForecast nested)
+        {
+            var locationID = GetLocationID(_forecast, nested);
+            var currentRecords = _forecast.Current.Any(x => x.LocationID == locationID);
+            var current = nested.CrForecast;
+            var currentDb = new Current
+            {
+                LocationID = GetLocationID(_forecast, nested),
+                Temperature = current.Tempareture,
+                WindDirection = current.WeatherCode.ToString(),
+                WeatherCode = WeatherCode(current.WeatherCode),
+                WindSpeed = current.WindSpeed,
+                IsDayTime = current.IsDayTime == 1,
+            };
             _forecast.SaveChanges();
         }
 
