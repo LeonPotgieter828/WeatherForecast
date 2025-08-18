@@ -7,11 +7,13 @@ namespace WeatherForecast.Models
         [Key]
         public int HourlyID { get; set; }
         [Required]
+        public int LocationID { get; set; }
+        [Required]
         public double Tempareture { get; set; }
         [Required]
         public TimeOnly ForecastTime { get; set; }
         [Required]
-        public double RainSum { get; set; }
+        public double Rain { get; set; }
 
     }
 }

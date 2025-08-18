@@ -6,10 +6,10 @@ namespace WeatherForecast.Models
     {
         public ForecastDbContext(DbContextOptions options) : base(options) { }
 
-        DbSet<Current> Current {  get; set; }
-        DbSet<Hourly> Hourly { get; set; }
-        DbSet<Daily> Daily { get; set; }
-        DbSet<Location> Location { get; set; }
-        DbSet<History> History { get; set; }
+        public DbSet<Current> Current {  get; set; }
+        public DbSet<Hourly> Hourly { get; set; }
+        public DbSet<Daily> Daily { get; set; }
+        public DbSet<Location> Location { get; set; }
+        public DbSet<History> History { get; set; }
     }
 }

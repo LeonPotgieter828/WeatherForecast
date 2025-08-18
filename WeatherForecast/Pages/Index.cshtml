@@ -5,10 +5,39 @@
 }
 
 <h1>Welcome to Weathery Weather</h1>
+<label>Search Location</label>
+<form method="Post">
+    <input type="text" placeholder="Search" asp-for="SearchName"/>
+    <input type="submit" value="Search"/>
+</form>
+
+
 <label>Weather of Today</label>
 <p id="Region&City"></p>
-<p>@Model.currentForecast.Tempareture</p>
-<p>@Model.currentForecast.WindDirection</p>
-<p>@Model.currentForecast.WindSpeed</p>
+<p>Temp: @Model.nested.CrForecast.Tempareture</p>
+<p>Wind Direction: @Model.nested.CrForecast.WindDirection</p>
+<p>Wind Speed: @Model.nested.CrForecast.WindSpeed km/h</p>
+
+@foreach (var item in Model.nested.HrForecast.Time)
+{
+    <p>hourly times for the week: @item</p> 
+}
+
+@foreach(var item in Model.nested.Location){
+    <p>@item.City</p>
+}
+
+@for(int i = 0; i < Model.nested.DlForecast.MaxTempareture.Count; i++)
+{
+    <p>Date: @Model.nested.DlForecast.Date[i]</p>
+    <p>Max Temp: @Model.nested.DlForecast.MaxTempareture[i]</p>
+    <p>Min Temp: @Model.nested.DlForecast.MinTempareture[i]</p>
+    <p>Wind Speed: @Model.nested.DlForecast.WindSpeed[i]</p>
+    <p>Rain Sum: @Model.nested.DlForecast.RainSum[i]</p>
+}
+
+
+
+
 
 

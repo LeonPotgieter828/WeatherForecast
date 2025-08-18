@@ -1,0 +1,21 @@
+﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using WeatherForecast.Models;
+
+namespace WeatherForecast.ViewModels
+{
+    public class NestedForecast
+    {
+        [JsonPropertyName("current")]
+        public CurrentViewModel CrForecast { get; set; }
+
+        [JsonPropertyName("hourly")]
+        public HourlyViewModel HrForecast { get; set; }
+
+        [JsonPropertyName("daily")]
+        public DailyViewModel DlForecast { get; set; }
+
+        [JsonPropertyName("results")]
+        public List<LocationViewModel> Location { get; set; }
+    }
+}
