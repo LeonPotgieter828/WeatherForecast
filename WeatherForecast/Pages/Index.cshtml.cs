@@ -1,50 +1,63 @@
 using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Text.Json;
 using WeatherForecast.Models;
+using WeatherForecast.Operations;
 using WeatherForecast.ViewModels;
 
 namespace WeatherForecast.Pages
 {
     public class IndexModel : PageModel
     {
-        string url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum&hourly=temperature_2m,rain&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&timezone=auto";
-        string geoUrl = "https://nominatim.openstreetmap.org/reverse?";
-        private readonly ILogger<IndexModel> _logger;
-        private static readonly HttpClient _httpClient = new HttpClient();
-        public NestedForecast nested;
+        [BindProperty]
+        public string SearchName { get; set; }
+        public double longitude { get; set; }
+        public double latitude { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger)
+        private readonly ILogger<IndexModel> _logger;
+
+        private static readonly HttpClient _httpClient = new HttpClient();
+        public NestedForecast nested { get; set; }
+        public DbOperations _db { get; set; }
+        public ForecastDbContext _forecast;
+
+        public IndexModel(ILogger<IndexModel> logger, ForecastDbContext forecast)
         {
             _logger = logger;
+            _forecast = forecast;
+            _db = new DbOperations();
         }
 
         public async Task OnGet()
         {
-            nested = new NestedForecast
+            nested = await BuildForecastAsync(SearchName);
+            _db.AddOrUpdateHourly(_forecast, nested);
+
+        }
+
+        public async Task<IActionResult> OnPost()
+        {
+            nested = await BuildForecastAsync(SearchName);
+            _db.AddOrUpdateHourly(_forecast, nested);
+            return Page();
+        }
+        private async Task<NestedForecast> BuildForecastAsync(string searchName)
+        {
+            return new NestedForecast
             {
+                Location = await LocationSearch(searchName),
                 CrForecast = await CurrentWeather(),
                 HrForecast = await HourlyWeather(),
                 DlForecast = await DailyWeather(),
-                Location = await GetLocationDetails()
             };
-        }
-
-        public async Task<HttpResponseMessage?> GetResponse()
-        {
-            var response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                return response;
-            }
-            return null;
         }
 
         public async Task<CurrentViewModel?> CurrentWeather()
         {
-            var getResponse = await _httpClient.GetAsync(url);
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -53,10 +66,11 @@ namespace WeatherForecast.Pages
             }
             return null;
         } 
+        
 
         public async Task<HourlyViewModel> HourlyWeather()
         {
-            var getResponse = await _httpClient.GetAsync(url);
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -68,7 +82,7 @@ namespace WeatherForecast.Pages
 
         public async Task<DailyViewModel> DailyWeather()
         {
-            var getResponse = await _httpClient.GetAsync(url);
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -78,30 +92,30 @@ namespace WeatherForecast.Pages
             return null;
         }
 
-        public async Task<LocationViewModel> GetLocationDetails()
+        public async Task<List<LocationViewModel>> LocationSearch(string name)
         {
-            var location = await Location();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("WeatherForecast/1.0 (leonpot992@gmail.com)");
-            var getResponse = await _httpClient.GetAsync($"https://nominatim.openstreetmap.org/reverse?lat={location.Latitude.ToString(CultureInfo.InvariantCulture)}&lon={location.Longitude.ToString(CultureInfo.InvariantCulture)}&format=json&addressdetails=1");
+
+            if (name.IsNullOrEmpty())
+            {
+                name = "Port Elizabeth";
+            }
+            var getResponse = await _httpClient.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
-                var locationDetails = JsonSerializer.Deserialize<NestedForecast>(json);
-                return locationDetails.Location;
+                var location = JsonSerializer.Deserialize<NestedForecast>(json);
+                var getLocation = location.Location.FirstOrDefault();
+                longitude = getLocation.Longitude;
+                latitude = getLocation.Latitude;
+                return location.Location;
             }
             return null;
         }
 
-        public async Task<LocationViewModel> Location()
+        public string ForecastURL()
         {
-            var getResponse = await _httpClient.GetAsync(url);
-            if (getResponse.IsSuccessStatusCode)
-            {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var location = JsonSerializer.Deserialize<LocationViewModel>(json);
-                return location;
-            }
-            return null;
+            string url = $"https://api.open-meteo.com/v1/forecast?latitude={longitude.ToString(CultureInfo.InvariantCulture)}&longitude={latitude.ToString(CultureInfo.InvariantCulture)}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum&hourly=temperature_2m,rain&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&timezone=auto";
+            return url;
         }
 
         public HourlyViewModel Hours(NestedForecast hourlyWeather)

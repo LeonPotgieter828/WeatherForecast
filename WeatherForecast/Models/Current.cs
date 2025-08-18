@@ -11,7 +11,7 @@ namespace WeatherForecast.Models
         [Required]
         public int LocationID { get; set; }
         [Required]
-        public double Tempareture { get; set; }
+        public double Temperature { get; set; }
         [Required]
         public double WindSpeed { get; set; }
         [Required]

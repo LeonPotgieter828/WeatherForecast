@@ -11,10 +11,10 @@ namespace WeatherForecast.ViewModels
         [JsonPropertyName("latitude")]
         public double Latitude { get; set; }
 
-        [JsonPropertyName("state")]
+        [JsonPropertyName("admin1")]
         public string Region { get; set; }
 
-        [JsonPropertyName("city")]
+        [JsonPropertyName("name")]
         public string City { get; set; }
     }
 }

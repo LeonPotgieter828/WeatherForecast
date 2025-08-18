@@ -5,6 +5,13 @@
 }
 
 <h1>Welcome to Weathery Weather</h1>
+<label>Search Location</label>
+<form method="Post">
+    <input type="text" placeholder="Search" asp-for="SearchName"/>
+    <input type="submit" value="Search"/>
+</form>
+
+
 <label>Weather of Today</label>
 <p id="Region&City"></p>
 <p>Temp: @Model.nested.CrForecast.Tempareture</p>
@@ -16,7 +23,9 @@
     <p>hourly times for the week: @item</p> 
 }
 
-<p>@Model.nested.Location.City</p>
+@foreach(var item in Model.nested.Location){
+    <p>@item.City</p>
+}
 
 @for(int i = 0; i < Model.nested.DlForecast.MaxTempareture.Count; i++)
 {
