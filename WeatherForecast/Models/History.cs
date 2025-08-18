@@ -13,7 +13,7 @@ namespace WeatherForecast.Models
         [Required]
         public double WindSpeed { get; set; }
         [Required]
-        public DateTime RecordedAt { get; set; }    
+        public DateOnly RecordedAt { get; set; }    
         [Required]
         public double RainSum { get; set; } 
     }

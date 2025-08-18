@@ -7,12 +7,13 @@ namespace WeatherForecast.Operations
     public class DbOperations
     {
 
-        public void StoreAndUpdate(ForecastDbContext _forecast, NestedForecast nested)
+        public void StoreAndUpdate(ForecastDbContext _forecast, AllWeatherNested nested)
         {
-            AddLocation(_forecast, nested);
-            AddOrUpdateCurrent(_forecast, nested);
-            AddOrUpdateHourly(_forecast, nested);
-            AddOrUpdateDialy(_forecast, nested);
+            AddLocation(_forecast, nested.NestedF);
+            AddOrUpdateCurrent(_forecast, nested.NestedF);
+            AddOrUpdateHourly(_forecast, nested.NestedF);
+            AddOrUpdateDialy(_forecast, nested.NestedF);
+            AddOrUpdateHistory(_forecast, nested);
         }
 
         public void AddOrUpdateDialy(ForecastDbContext _forecast, NestedForecast nested)
@@ -74,6 +75,20 @@ namespace WeatherForecast.Operations
             }
             _forecast.SaveChanges();
         }
+
+        public void AddOrUpdateHistory(ForecastDbContext _forecast, AllWeatherNested nested)
+        {
+            var location = GetLocationID(_forecast, nested.NestedF);
+            var locationID = _forecast.History.Any(x => x.LocationID == location);
+            if (!locationID)
+            {
+                AddHistory(_forecast, nested);
+            }
+            else
+            {
+                UpdateHistory(_forecast, nested);
+            }
+        }
         
         public void AddCurrent(ForecastDbContext _forecast, NestedForecast nested)
         {
@@ -94,17 +109,15 @@ namespace WeatherForecast.Operations
         public void UpdateCurrent(ForecastDbContext _forecast, NestedForecast nested)
         {
             var locationID = GetLocationID(_forecast, nested);
-            var currentRecords = _forecast.Current.Any(x => x.LocationID == locationID);
+            var currentRecords = _forecast.Current.FirstOrDefault(x => x.LocationID == locationID);
             var current = nested.CrForecast;
-            var currentDb = new Current
-            {
-                LocationID = GetLocationID(_forecast, nested),
-                Temperature = current.Tempareture,
-                WindDirection = current.WeatherCode.ToString(),
-                WeatherCode = WeatherCode(current.WeatherCode),
-                WindSpeed = current.WindSpeed,
-                IsDayTime = current.IsDayTime == 1,
-            };
+
+            currentRecords.Temperature = current.Tempareture;
+            currentRecords.WindDirection = current.WeatherCode.ToString();
+            currentRecords.WeatherCode = WeatherCode(current.WeatherCode);
+            currentRecords.WindSpeed = current.WindSpeed;
+            currentRecords.IsDayTime = current.IsDayTime == 1;
+
             _forecast.SaveChanges();
         }
 
@@ -132,23 +145,20 @@ namespace WeatherForecast.Operations
             var hourly = nested.HrForecast;
             var getTimes = hourly.Time.Select(x => TimeOnly.FromDateTime(x)).ToList();
             var locationID = GetLocationID(_forecast, nested);
-            var hourlyRecords = _forecast.Hourly.Any(x => x.LocationID == locationID);
+            
 
             for (int i = 0; i < hourly.Time.Count; i++)
             {
-                var hourlyDb = new Hourly
-                {
-                    LocationID = locationID,
-                    ForecastTime = getTimes[i],
-                    Rain = hourly.Rain[i],
-                    Tempareture = hourly.Temp[i]
-                };
+                var hourlyRecords = _forecast.Hourly.FirstOrDefault(x => x.LocationID == locationID);
+
+                hourlyRecords.LocationID = locationID;
+                hourlyRecords.ForecastTime = getTimes[i];
+                hourlyRecords.Rain = hourly.Rain[i];
+                hourlyRecords.Tempareture = hourly.Temp[i];
+                
             }
             _forecast.SaveChanges();
         }
-
-        
-
 
         public void AddDaily(ForecastDbContext _forecast, NestedForecast nested)
         {
@@ -172,23 +182,55 @@ namespace WeatherForecast.Operations
         {
             var daily = nested.DlForecast;
             var LocationID = GetLocationID(_forecast, nested);
-            var getDailyRecords = _forecast.Daily.Where(x => x.LocationID == LocationID).ToList();
-
-            for (int i = 0; i < getDailyRecords.Count; i++)
+           
+            for (int i = 0; i < daily.MaxTempareture.Count; i++)
             {
-                var dailyDb = new Daily
-                {
-                    MaxTempareture = daily.MaxTempareture[i],
-                    MinTempareture = daily.MinTempareture[i],
-                    RainSum = daily.RainSum[i],
-                    WindSpeed = daily.WindSpeed[i]
-                };
+                var getDailyRecords = _forecast.Daily.FirstOrDefault(x => x.LocationID == LocationID);
+
+                getDailyRecords.MaxTempareture = daily.MaxTempareture[i];
+                getDailyRecords.MinTempareture = daily.MinTempareture[i];
+                getDailyRecords.RainSum = daily.RainSum[i];
+                getDailyRecords.WindSpeed = daily.WindSpeed[i];
+                
             }
             _forecast.SaveChanges();
         }
 
+        public void AddHistory(ForecastDbContext _forecast, AllWeatherNested nested)
+        {
+            var location = GetLocationID(_forecast, nested.NestedF);
+            var history = nested.NestedH.History;
+            for (int i = 0; i < history.Temp.Count; i++)
+            {
+                var historyDb = new History
+                {
+                    LocationID = location,
+                    Tempareture = history.Temp[i],
+                    RecordedAt = history.Recorded[i],
+                    WindSpeed = history.WindSpeed[i],
+                    RainSum = history.Rain[i]
+                };
+                _forecast.History.Add(historyDb);
+            }
+            _forecast.SaveChanges();
+        }
 
-
+        public void UpdateHistory(ForecastDbContext _forecast, AllWeatherNested nested)
+        {
+            var locationID = GetLocationID(_forecast, nested.NestedF);
+            var history = nested.NestedH.History;
+           
+            for (int i = 0; i < history.Temp.Count; i++)
+            {
+                var historyRecords = _forecast.History.FirstOrDefault(x => x.LocationID == locationID);
+                historyRecords.Tempareture = history.Temp[i];
+                historyRecords.RecordedAt = history.Recorded[i];
+                historyRecords.RainSum = history.Rain[i];
+                historyRecords.WindSpeed = history.WindSpeed[i];
+                
+            }
+            _forecast.SaveChanges();
+        }
 
         public int GetLocationID(ForecastDbContext _forecast, NestedForecast nested)
         {
@@ -197,6 +239,7 @@ namespace WeatherForecast.Operations
             return locationID.LocationID;   
         }
 
+        
         public string WeatherCode(int code)
         {
             string condition = "";
