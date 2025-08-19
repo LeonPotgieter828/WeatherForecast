@@ -7,13 +7,17 @@ namespace WeatherForecast.Operations
     public class DbOperations
     {
 
-        public void StoreAndUpdate(ForecastDbContext _forecast, AllWeatherNested nested)
+        public async void StoreAndUpdate(ForecastDbContext _forecast, AllWeatherNested nested, Task<bool> api)
         {
-            AddLocation(_forecast, nested.NestedF);
-            AddOrUpdateCurrent(_forecast, nested.NestedF);
-            AddOrUpdateHourly(_forecast, nested.NestedF);
-            AddOrUpdateDialy(_forecast, nested.NestedF);
-            AddOrUpdateHistory(_forecast, nested);
+            var check = await api;
+            if (check == true)
+            {
+                AddLocation(_forecast, nested.NestedF);
+                AddOrUpdateCurrent(_forecast, nested.NestedF);
+                AddOrUpdateHourly(_forecast, nested.NestedF);
+                AddOrUpdateDialy(_forecast, nested.NestedF);
+                AddOrUpdateHistory(_forecast, nested);
+            }
         }
 
         public void AddOrUpdateDialy(ForecastDbContext _forecast, NestedForecast nested)
@@ -171,7 +175,9 @@ namespace WeatherForecast.Operations
                     MaxTempareture = daily.MaxTempareture[i],
                     MinTempareture = daily.MinTempareture[i],
                     RainSum = daily.RainSum[i],
-                    WindSpeed = daily.WindSpeed[i]
+                    WindSpeed = daily.WindSpeed[i],
+                    Date = daily.Date[i]
+                    
                 };
                 _forecast.Daily.Add(dailyDb);
             }
@@ -191,6 +197,7 @@ namespace WeatherForecast.Operations
                 getDailyRecords.MinTempareture = daily.MinTempareture[i];
                 getDailyRecords.RainSum = daily.RainSum[i];
                 getDailyRecords.WindSpeed = daily.WindSpeed[i];
+                getDailyRecords.Date = daily.Date[i];
                 
             }
             _forecast.SaveChanges();
@@ -208,7 +215,7 @@ namespace WeatherForecast.Operations
                     Tempareture = history.Temp[i],
                     RecordedAt = history.Recorded[i],
                     WindSpeed = history.WindSpeed[i],
-                    RainSum = history.Rain[i]
+                    RainSum = history.Rain[i],
                 };
                 _forecast.History.Add(historyDb);
             }
@@ -238,8 +245,7 @@ namespace WeatherForecast.Operations
             var locationID = _forecast.Location.Where(x => x.City == location.City).FirstOrDefault();
             return locationID.LocationID;   
         }
-
-        
+      
         public string WeatherCode(int code)
         {
             string condition = "";

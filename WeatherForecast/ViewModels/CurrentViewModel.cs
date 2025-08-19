@@ -22,5 +22,7 @@ namespace WeatherForecast.ViewModels
 
         [JsonPropertyName("is_day")]
         public int IsDayTime { get; set; }
+
+        public string WeatherCodeString { get; set; }
     }
 }

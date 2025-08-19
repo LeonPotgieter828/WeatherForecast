@@ -24,6 +24,9 @@ namespace WeatherForecast.Pages
 
         public AllWeatherNested nested { get; set; }
         public DbOperations _db { get; set; }
+        public DbFallback _fallback { get; set; }
+        public Task<bool> ApiSuccess { get; set; }
+
         public ForecastDbContext _forecast;
 
         public IndexModel(ILogger<IndexModel> logger, ForecastDbContext forecast)
@@ -31,60 +34,51 @@ namespace WeatherForecast.Pages
             _logger = logger;
             _forecast = forecast;
             _db = new DbOperations();
+            _fallback = new DbFallback(_forecast);
         }
 
         public async Task OnGet()
         {
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
-            {
-                NoCache = true,
-                NoStore = true,
-                MustRevalidate = true
-            };
             nested = await BuildForecastAsync(SearchName);
-            _db.StoreAndUpdate(_forecast, nested);
+            ApiSuccess = ApiResponse();
+            _db.StoreAndUpdate(_forecast, nested, ApiSuccess);
         }
 
         public async Task<IActionResult> OnPost()
-        {
-           
+        {      
             nested = await BuildForecastAsync(SearchName);
-            _db.StoreAndUpdate(_forecast, nested);
+            _db.StoreAndUpdate(_forecast, nested, ApiSuccess);
             return Page();
         }
         private async Task<AllWeatherNested> BuildForecastAsync(string searchName)
         {
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
+            if (searchName.IsNullOrEmpty())
             {
-                NoCache = true,
-                NoStore = true,
-                MustRevalidate = true
-            };
+                searchName = "Port Elizabeth";
+                SearchName = searchName;
+            }
             var nes = new AllWeatherNested
             {
                 NestedF = new NestedForecast
                 {
-                    Location = await LocationSearch(searchName, client),
-                    CrForecast = await CurrentWeather(client),
-                    HrForecast = await HourlyWeather(client),
-                    DlForecast = await DailyWeather(client),
+                    Location = await LocationSearch(searchName),
+                    CrForecast = await CurrentWeather(searchName),
+                    HrForecast = await HourlyWeather(searchName),
+                    DlForecast = await DailyWeather(searchName),
                 },
 
                 NestedH = new NestedHistory
                 {
-                    History = await HistoryForecast(client)
+                    History = await HistoryForecast(searchName)
                 }
             };
 
             return nes;
         }
 
-        public async Task<CurrentViewModel?> CurrentWeather(HttpClient client)
+        public async Task<CurrentViewModel?> CurrentWeather(string name)
         {
-
-            var getResponse = await client.GetAsync(ForecastURL());
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -92,41 +86,36 @@ namespace WeatherForecast.Pages
                 Console.WriteLine(json);
                 return currentWeather.CrForecast;
             }
-            return null;
+            return _fallback.CurrentFallback(name);
         } 
 
-        public async Task<HourlyViewModel> HourlyWeather(HttpClient client)
+        public async Task<HourlyViewModel> HourlyWeather(string name)
         {
-            var getResponse = await client.GetAsync(ForecastURL());
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json); 
                 return Hours(hourlyWeather);
             }
-            return null;
+            return _fallback.HourlyFallback(name);
         }
 
-        public async Task<DailyViewModel> DailyWeather(HttpClient client)
+        public async Task<DailyViewModel> DailyWeather(string name)
         {
-            var getResponse = await client.GetAsync(ForecastURL());
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
                 return dailyWeather.DlForecast;
             }
-            return null;
+            return _fallback.DailyFallback(name);
         }
 
-        public async Task<List<LocationViewModel>> LocationSearch(string name, HttpClient client)
+        public async Task<List<LocationViewModel>> LocationSearch(string name)
         {
-
-            if (name.IsNullOrEmpty())
-            {
-                name = "Port Elizabeth";
-            }
-            var getResponse = await client.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
+            var getResponse = await _httpClient.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -136,19 +125,29 @@ namespace WeatherForecast.Pages
                 latitude = getLocation.Latitude;
                 return location.Location;
             }
-            return null;
+            return _fallback.LocationFallback(name);
         }
 
-        public async Task<HistoryViewModel> HistoryForecast(HttpClient client)
+        public async Task<HistoryViewModel> HistoryForecast(string name)
         {
-            var getResponse = await client.GetAsync(HistoryURL());
+            var getResponse = await _httpClient.GetAsync(HistoryURL());
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var history = JsonSerializer.Deserialize<NestedHistory>(json);
                 return history.History;
             }
-            return null;
+            return _fallback.HistoryFallback(name);
+        }
+
+        public async Task<bool> ApiResponse()
+        {
+            var getResponse = await _httpClient.GetAsync(ForecastURL());
+            if (getResponse.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            return false;
         }
 
         public string ForecastURL()

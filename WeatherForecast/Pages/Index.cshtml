@@ -17,10 +17,19 @@
 <p>Temp: @Model.nested.NestedF.CrForecast.Tempareture</p>
 <p>Wind Direction: @Model.nested.NestedF.CrForecast.WindDirection</p>
 <p>Wind Speed: @Model.nested.NestedF.CrForecast.WindSpeed km/h</p>
-
-@foreach (var item in Model.nested.NestedF.HrForecast.Time)
+@if (Model.nested.NestedF.HrForecast.TimeOnly == null)
 {
-    <p>hourly times for the week: @item</p> 
+    @foreach (var item in Model.nested.NestedF.HrForecast.Time)
+    {
+        <p>hourly times for the week: @item</p>
+    }
+}
+else
+{
+    @foreach (var item in Model.nested.NestedF.HrForecast.TimeOnly)
+    {
+        <p>hourly times for the week: @item</p>
+    }
 }
 
 @foreach(var item in Model.nested.NestedF.Location){

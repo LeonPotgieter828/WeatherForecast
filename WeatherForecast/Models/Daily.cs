@@ -16,5 +16,7 @@ namespace WeatherForecast.Models
         public double WindSpeed { get; set; }
         [Required]
         public double RainSum { get; set; }
+        [Required]
+        public DateOnly Date {  get; set; }
     }
 }

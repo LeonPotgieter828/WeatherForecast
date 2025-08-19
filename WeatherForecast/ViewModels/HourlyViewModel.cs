@@ -13,5 +13,7 @@ namespace WeatherForecast.ViewModels
 
         [JsonPropertyName("rain")]
         public List<double> Rain { get; set; }
+
+        public List<TimeOnly> TimeOnly { get; set; }
     }
 }
