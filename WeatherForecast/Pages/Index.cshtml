@@ -17,24 +17,22 @@
 <p>Temp: @Model.nested.NestedF.CrForecast.Tempareture</p>
 <p>Wind Direction: @Model.nested.NestedF.CrForecast.WindDirection</p>
 <p>Wind Speed: @Model.nested.NestedF.CrForecast.WindSpeed km/h</p>
-@if (Model.nested.NestedF.HrForecast.TimeOnly == null)
+<p>Is day or night: @Model.nested.NestedF.CrForecast.DayOrNight</p>
+<p>Weather Code: @Model.nested.NestedF.CrForecast.WeatherCodeString</p>
+
+@for (int i = 0; i < Model.nested.NestedF.HrForecast.Rain.Count; i++)
 {
-    @foreach (var item in Model.nested.NestedF.HrForecast.Time)
-    {
-        <p>hourly times for the week: @item</p>
-    }
+    <p>Time: @Model.nested.NestedF.HrForecast.TimeString[i]</p>
+    <p>Temp: @Model.nested.NestedF.HrForecast.Temp[i]</p>
+    <p>Rain: @Model.nested.NestedF.HrForecast.Rain[i]</p>
 }
-else
-{
-    @foreach (var item in Model.nested.NestedF.HrForecast.TimeOnly)
-    {
-        <p>hourly times for the week: @item</p>
-    }
-}
+
 
 @foreach(var item in Model.nested.NestedF.Location){
     <p>@item.City</p>
 }
+
+
 
 @for(int i = 0; i < Model.nested.NestedF.DlForecast.MaxTempareture.Count; i++)
 {
@@ -44,6 +42,16 @@ else
     <p>Wind Speed: @Model.nested.NestedF.DlForecast.WindSpeed[i]</p>
     <p>Rain Sum: @Model.nested.NestedF.DlForecast.RainSum[i]</p>
 }
+
+@for (int i = 0; i < Model.nested.NestedH.History.Temp.Count; i++)
+{
+    <p>Date Recorded: @Model.nested.NestedH.History.Temp[i]</p>
+    <p>Temp: @Model.nested.NestedH.History.Recorded[i]</p>
+    <p>Wind Speed: @Model.nested.NestedH.History.WindSpeed[i]</p>
+    <p>Rain Sum: @Model.nested.NestedH.History.Rain[i]</p>
+}
+
+
 
 
 

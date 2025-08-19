@@ -15,5 +15,6 @@ namespace WeatherForecast.ViewModels
         public List<double> Rain { get; set; }
 
         public List<TimeOnly> TimeOnly { get; set; }
+        public List<string> TimeString { get; set; }
     }
 }

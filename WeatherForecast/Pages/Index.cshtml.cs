@@ -33,7 +33,7 @@ namespace WeatherForecast.Pages
         {
             _logger = logger;
             _forecast = forecast;
-            _db = new DbOperations();
+            _db = new DbOperations(_forecast);
             _fallback = new DbFallback(_forecast);
         }
 
@@ -41,13 +41,14 @@ namespace WeatherForecast.Pages
         {
             nested = await BuildForecastAsync(SearchName);
             ApiSuccess = ApiResponse();
-            _db.StoreAndUpdate(_forecast, nested, ApiSuccess);
+            await _db.StoreAndUpdate(nested, ApiSuccess);
         }
 
         public async Task<IActionResult> OnPost()
         {      
             nested = await BuildForecastAsync(SearchName);
-            _db.StoreAndUpdate(_forecast, nested, ApiSuccess);
+            ApiSuccess = ApiResponse();
+            await _db.StoreAndUpdate(nested, ApiSuccess);
             return Page();
         }
         private async Task<AllWeatherNested> BuildForecastAsync(string searchName)
@@ -75,6 +76,20 @@ namespace WeatherForecast.Pages
 
             return nes;
         }
+        public async Task<List<LocationViewModel>> LocationSearch(string name)
+        {
+            var getResponse = await _httpClient.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
+            if (getResponse.IsSuccessStatusCode)
+            {
+                var json = await getResponse.Content.ReadAsStringAsync();
+                var location = JsonSerializer.Deserialize<NestedForecast>(json);
+                var getLocation = location.Location.FirstOrDefault();
+                longitude = getLocation.Longitude;
+                latitude = getLocation.Latitude;
+                return location.Location;
+            }
+            return _fallback.LocationFallback(name);
+        }
 
         public async Task<CurrentViewModel?> CurrentWeather(string name)
         {
@@ -83,7 +98,8 @@ namespace WeatherForecast.Pages
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                Console.WriteLine(json);
+                currentWeather.CrForecast.DayOrNight = IsDayOrNight(currentWeather.CrForecast.IsDayTime);
+                currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
                 return currentWeather.CrForecast;
             }
             return _fallback.CurrentFallback(name);
@@ -95,7 +111,9 @@ namespace WeatherForecast.Pages
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
-                var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json); 
+                var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
+                hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
                 return Hours(hourlyWeather);
             }
             return _fallback.HourlyFallback(name);
@@ -113,21 +131,6 @@ namespace WeatherForecast.Pages
             return _fallback.DailyFallback(name);
         }
 
-        public async Task<List<LocationViewModel>> LocationSearch(string name)
-        {
-            var getResponse = await _httpClient.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
-            if (getResponse.IsSuccessStatusCode)
-            {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var location = JsonSerializer.Deserialize<NestedForecast>(json);
-                var getLocation = location.Location.FirstOrDefault();
-                longitude = getLocation.Longitude;
-                latitude = getLocation.Latitude;
-                return location.Location;
-            }
-            return _fallback.LocationFallback(name);
-        }
-
         public async Task<HistoryViewModel> HistoryForecast(string name)
         {
             var getResponse = await _httpClient.GetAsync(HistoryURL());
@@ -138,6 +141,17 @@ namespace WeatherForecast.Pages
                 return history.History;
             }
             return _fallback.HistoryFallback(name);
+        }
+        public string ForecastURL()
+        {
+            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum&hourly=temperature_2m,rain&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&timezone=auto";
+            return url;
+        }
+
+        public string HistoryURL()
+        {
+            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=weather_code,temperature_2m_max,rain_sum,wind_speed_10m_max,temperature_2m_min&current=weather_code&past_days=5&forecast_days=1";
+            return url;
         }
 
         public async Task<bool> ApiResponse()
@@ -150,17 +164,6 @@ namespace WeatherForecast.Pages
             return false;
         }
 
-        public string ForecastURL()
-        {
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum&hourly=temperature_2m,rain&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&timezone=auto";
-            return url;
-        }
-
-        public string HistoryURL()
-        {
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=weather_code,temperature_2m_max,rain_sum,wind_speed_10m_max,temperature_2m_min&current=weather_code&past_days=5&forecast_days=1";
-            return url;
-        }
 
         public HourlyViewModel Hours(NestedForecast hourlyWeather)
         {
@@ -185,6 +188,12 @@ namespace WeatherForecast.Pages
              hourlyWeather.HrForecast.Rain = filteredRain;
 
             return hourlyWeather.HrForecast;
+        }
+
+        public string IsDayOrNight(int isDay)
+        {
+            string dayOrNight = isDay == 1 ? "Day" : "Night";       
+            return dayOrNight;
         }
     }
 }
