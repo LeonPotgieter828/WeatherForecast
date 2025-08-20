@@ -17,6 +17,7 @@ namespace WeatherForecast.Pages
         public string SearchName { get; set; }
         public double longitude { get; set; }
         public double latitude { get; set; }
+        public string url { get; set; }
 
         private readonly ILogger<IndexModel> _logger;
 
@@ -26,6 +27,7 @@ namespace WeatherForecast.Pages
         public DbOperations _db { get; set; }
         public DbFallback _fallback { get; set; }
         public Task<bool> ApiSuccess { get; set; }
+        public Trending _trend { get; set; }
 
         public ForecastDbContext _forecast;
 
@@ -40,17 +42,25 @@ namespace WeatherForecast.Pages
         public async Task OnGet()
         {
             nested = await BuildForecastAsync(SearchName);
-            ApiSuccess = ApiResponse();
+            _trend = TrendBuilder(nested);
             await _db.StoreAndUpdate(nested, ApiSuccess);
         }
 
         public async Task<IActionResult> OnPost()
         {      
             nested = await BuildForecastAsync(SearchName);
-            ApiSuccess = ApiResponse();
+            _trend = TrendBuilder(nested);
             await _db.StoreAndUpdate(nested, ApiSuccess);
             return Page();
         }
+
+        public Trending TrendBuilder(AllWeatherNested nested)
+        {
+            var tren = new Trending();
+            tren.Averages(nested);
+            return tren;
+        }
+
         private async Task<AllWeatherNested> BuildForecastAsync(string searchName)
         {
             if (searchName.IsNullOrEmpty())
@@ -73,12 +83,13 @@ namespace WeatherForecast.Pages
                     History = await HistoryForecast(searchName)
                 }
             };
-
+            ApiSuccess = ApiResponse();
             return nes;
         }
         public async Task<List<LocationViewModel>> LocationSearch(string name)
         {
-            var getResponse = await _httpClient.GetAsync($"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json");
+            url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
+            var getResponse = await _httpClient.GetAsync(url);
             if (getResponse.IsSuccessStatusCode)
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
@@ -98,7 +109,7 @@ namespace WeatherForecast.Pages
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                currentWeather.CrForecast.DayOrNight = IsDayOrNight(currentWeather.CrForecast.IsDayTime);
+                currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
                 currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
                 return currentWeather.CrForecast;
             }
@@ -138,6 +149,7 @@ namespace WeatherForecast.Pages
             {
                 var json = await getResponse.Content.ReadAsStringAsync();
                 var history = JsonSerializer.Deserialize<NestedHistory>(json);
+                history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
                 return history.History;
             }
             return _fallback.HistoryFallback(name);
@@ -156,8 +168,10 @@ namespace WeatherForecast.Pages
 
         public async Task<bool> ApiResponse()
         {
-            var getResponse = await _httpClient.GetAsync(ForecastURL());
-            if (getResponse.IsSuccessStatusCode)
+            var getForecastApi = await _httpClient.GetAsync(ForecastURL());
+            var getHistoryApi = await _httpClient.GetAsync(HistoryURL());
+            var getLocationApi = await _httpClient.GetAsync(url);
+            if (getForecastApi.IsSuccessStatusCode && getHistoryApi.IsSuccessStatusCode && getLocationApi.IsSuccessStatusCode)
             {
                 return true;
             }
@@ -190,10 +204,6 @@ namespace WeatherForecast.Pages
             return hourlyWeather.HrForecast;
         }
 
-        public string IsDayOrNight(int isDay)
-        {
-            string dayOrNight = isDay == 1 ? "Day" : "Night";       
-            return dayOrNight;
-        }
+        
     }
 }
