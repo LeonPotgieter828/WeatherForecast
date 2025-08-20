@@ -4,8 +4,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Welcome to Weathery Weather</h1>
-<label>Search Location</label>
+<h1 style="text-align: center">Welcome to Weathery Weather</h1>
 <form class="search-container" method="Post">
     <div class="search-bar">
         <input class="search-input" type="text" placeholder="Search" asp-for="SearchName"/>
@@ -13,7 +12,7 @@
     </div>
 </form>
 
-<h2>Weather of Today</h2>
+<h2 style="text-align: center">Weather of Today</h2>
 
 <container class="current-container">
     <div class="current-box">
@@ -39,30 +38,31 @@
             <p>Is day or night: @Model.nested.NestedF.CrForecast.DayOrNight</p>
         </div>
     </div>
+    <div class="hourly-container">
+        @for (int i = 0; i < Model.nested.NestedF.HrForecast.Rain.Count; i++)
+        {
+            <div class="hourly-box">
+                <p class="timeHead">@Model.nested.NestedF.HrForecast.TimeString[i]</p>
+                <div class="temp-img">
+                    <img />
+                </div>
+                <p>@Model.nested.NestedF.HrForecast.Temp[i]</p>
+                <div class="rain-img">
+                    <img />
+                </div>
+                <p>@Model.nested.NestedF.HrForecast.Rain[i]</p>
+            </div>
+        }
+    </div>
 </container>
 
-<container class="hourly-container">
-    @for (int i = 0; i < Model.nested.NestedF.HrForecast.Rain.Count; i++)
-    {
-        <div class="hourly-box">
-            <p class="timeHead">@Model.nested.NestedF.HrForecast.TimeString[i]</p>
-            <div class="temp-img">
-                <img />
-            </div>
-            <p>@Model.nested.NestedF.HrForecast.Temp[i]</p>
-            <div class="rain-img">
-                <img />
-            </div>
-            <p>@Model.nested.NestedF.HrForecast.Rain[i]</p>
-        </div>
-    }
-</container>
+
 
 <container class="daily-container">
 
         @for(int i = 0; i < Model.nested.NestedF.DlForecast.MaxTempareture.Count; i++)
         {
-        <div class="dialy-box">
+        <div class="daily-box">
             <p class="date">@Model.nested.NestedF.DlForecast.Date[i].ToString("dddd")</p>
             <svg class="weather"
                  version="1.1"
@@ -96,24 +96,86 @@
         }
 </container>
 
-@foreach (var item in Model._trend.TempAvg)
-{
-    <p>Avg Temp: @item</p>
-}
 
-<div class="history-container">
-    @for (int i = 0; i < Model.nested.NestedH.History.Temp.Count; i++)
-    {
-        <p>Date Recorded: @Model.nested.NestedH.History.Temp[i]</p>
-        <p>Temp: @Model.nested.NestedH.History.Recorded[i]</p>
-        <p>Wind Speed: @Model.nested.NestedH.History.WindSpeed[i]</p>
-        <p>Rain Sum: @Model.nested.NestedH.History.Rain[i]</p>
-    }
+
+<div class="compare-container">
+    <div class="con">
+        <h4>History Forecast</h4>
+        <table class="table">
+            <thead>
+                <th>Date</th>
+                <th>Tempareture</th>
+                <th>Wind Speed km/h</th>
+                <th>Rain mm</th>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.nested.NestedH.History.Temp.Count; i++)
+                {
+                    <tr>
+                        <td>@Model.nested.NestedH.History.Recorded[i]</td>
+                        <td>@Model.nested.NestedH.History.Temp[i]</td>
+                        <td>@Model.nested.NestedH.History.WindSpeed[i]</td>
+                        <td>@Model.nested.NestedH.History.Rain[i]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div> 
+    
+    <div class="con">
+        <h4>Daily Forecast</h4>
+        <table class="table">
+            <thead>
+                <th>Date</th>
+                <th>Tempareture</th>
+                <th>Wind Speed km/h</th>
+                <th>Rain mm</th>
+            </thead>
+            <tbody>
+                @for (int i = 1; i < Model.nested.NestedF.DlForecast.MaxTempareture.Count; i++)
+                {
+                    <tr>
+                        <td>@Model.nested.NestedF.DlForecast.Date[i]</td>
+                        <td>@Model.nested.NestedF.DlForecast.MaxTempareture[i]</td>
+                        <td>@Model.nested.NestedF.DlForecast.WindSpeed[i]</td>
+                        <td>@Model.nested.NestedF.DlForecast.RainSum[i]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="con2">
+        <h4>Averages Daily Forecast</h4>
+        <table class="table">
+            <thead>
+                <th>Average Tempareture</th>
+                <th>Average Wind km/h</th>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model._trend.TempAvg.Count; i++)
+                {
+                    <tr>
+                        <td>@Model._trend.TempAvg[i]</td>
+                        <td>@Model._trend.WindAvg[i]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <style>
     p{
         margin: 0;
+    }
+
+    h4{
+        margin: 0;
+        margin-top: 8px;
+        font-size: 22px;
+        color: white;
+        text-align: center;
     }
 
     .search-container{
@@ -188,40 +250,109 @@
 
     .hourly-container{
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        overflow-x: auto;
-        column-gap: 5px;
-        width: 45%;
-        margin-bottom: 20px;
+        overflow-y: auto;
+        row-gap: 5px;
+        height: 250px;
     }
 
     .hourly-box{
         display: flex;
         background-color: rgba(10, 10, 10, 0.8);
-        width: 80px;
-        height: 120px;
-        flex-direction: column;
+        width: 240px;
+        padding-top: 25px;
+        padding-bottom: 25px;
         align-content: center;
         justify-content: center;
         border-radius: 10px;
         border: none;
         flex-shrink: 0;
+        column-gap: 8px;
     }
 
         .hourly-box p{
             color: white;
             margin: 0;
             text-align: center;
+            height: 20px;
         }
 
+        .hourly-box .temp-img{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+        }
+        .hourly-box .rain-img{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+        }
+
+    .compare-container{
+        display: flex;
+        column-gap: 10px;
+    }
+        .con{
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            justify-content: center;
+            background-color: rgba(10, 10, 10, 0.8);
+            border-radius: 10px;
+            flex: 1;
+        }
+        
+        .con2{
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            justify-content: center;
+            background-color: rgba(10, 10, 10, 0.8);
+            border-radius: 10px;
+            width: 300px;
+        }
+
+    .table{
+        border-collapse: separate;
+        border-spacing: 0 5px;
+        background-color: transparent;
+        width: 100%;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+        .table th, .table td{
+            padding: 10px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .table th:not(:last-child),
+        .table td:not(:last-child){
+           border-right: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+    .table td{
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
+            padding-left: 5px;
+            padding-right: 5px;
+    }
+
+   
+   
 
     .daily-container{
         display: flex;
         column-gap: 10px;
+        margin-bottom: 40px;
     }
 
-    .dialy-box {
+    .daily-box {
         position: relative;
         width: 220px;
         height: 220px;

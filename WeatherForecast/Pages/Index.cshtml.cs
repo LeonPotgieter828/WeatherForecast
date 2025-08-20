@@ -41,9 +41,9 @@ namespace WeatherForecast.Pages
 
         public async Task OnGet()
         {
-            nested = await BuildForecastAsync(SearchName);
-            _trend = TrendBuilder(nested);
-            await _db.StoreAndUpdate(nested, ApiSuccess);
+                nested = await BuildForecastAsync(SearchName);
+                _trend = TrendBuilder(nested);
+                await _db.StoreAndUpdate(nested, ApiSuccess);
         }
 
         public async Task<IActionResult> OnPost()
@@ -88,71 +88,106 @@ namespace WeatherForecast.Pages
         }
         public async Task<List<LocationViewModel>> LocationSearch(string name)
         {
-            url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
-            var getResponse = await _httpClient.GetAsync(url);
-            if (getResponse.IsSuccessStatusCode)
+            try
             {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var location = JsonSerializer.Deserialize<NestedForecast>(json);
-                var getLocation = location.Location.FirstOrDefault();
-                longitude = getLocation.Longitude;
-                latitude = getLocation.Latitude;
-                return location.Location;
+                url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
+                var getResponse = await _httpClient.GetAsync(url);
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var location = JsonSerializer.Deserialize<NestedForecast>(json);
+                    var getLocation = location.Location.FirstOrDefault();
+                    longitude = getLocation.Longitude;
+                    latitude = getLocation.Latitude;
+                    return location.Location;
+                }
+                return _fallback.LocationFallback(name);
             }
-            return _fallback.LocationFallback(name);
+            catch (TaskCanceledException)
+            {
+                return _fallback.LocationFallback(name);
+            }
         }
 
         public async Task<CurrentViewModel?> CurrentWeather(string name)
         {
-            var getResponse = await _httpClient.GetAsync(ForecastURL());
-            if (getResponse.IsSuccessStatusCode)
+            try
             {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
-                currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
-                return currentWeather.CrForecast;
+                var getResponse = await _httpClient.GetAsync(ForecastURL());
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                    currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
+                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
+                    return currentWeather.CrForecast;
+                }
+                return _fallback.CurrentFallback(name);
             }
-            return _fallback.CurrentFallback(name);
+            catch (TaskCanceledException)
+            {
+                return _fallback.CurrentFallback(name);
+            }
         } 
 
         public async Task<HourlyViewModel> HourlyWeather(string name)
         {
-            var getResponse = await _httpClient.GetAsync(ForecastURL());
-            if (getResponse.IsSuccessStatusCode)
+            try
             {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
-                hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
-                return Hours(hourlyWeather);
+                var getResponse = await _httpClient.GetAsync(ForecastURL());
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                    var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
+                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
+                    return Hours(hourlyWeather);
+                }
+                return _fallback.HourlyFallback(name);
             }
-            return _fallback.HourlyFallback(name);
+            catch (TaskCanceledException)
+            {
+                return _fallback.HourlyFallback(name);
+            }
         }
 
         public async Task<DailyViewModel> DailyWeather(string name)
         {
-            var getResponse = await _httpClient.GetAsync(ForecastURL());
-            if (getResponse.IsSuccessStatusCode)
+            try
             {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                return dailyWeather.DlForecast;
+                var getResponse = await _httpClient.GetAsync(ForecastURL());
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                    return dailyWeather.DlForecast;
+                }
+                return _fallback.DailyFallback(name);
             }
-            return _fallback.DailyFallback(name);
+            catch (TaskCanceledException)
+            {
+                return _fallback.DailyFallback(name);
+            }
         }
 
         public async Task<HistoryViewModel> HistoryForecast(string name)
         {
-            var getResponse = await _httpClient.GetAsync(HistoryURL());
-            if (getResponse.IsSuccessStatusCode)
+            try
             {
-                var json = await getResponse.Content.ReadAsStringAsync();
-                var history = JsonSerializer.Deserialize<NestedHistory>(json);
-                history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
-                return history.History;
+                var getResponse = await _httpClient.GetAsync(HistoryURL());
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var history = JsonSerializer.Deserialize<NestedHistory>(json);
+                    history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
+                    return history.History;
+                }
+                return _fallback.HistoryFallback(name);
             }
-            return _fallback.HistoryFallback(name);
+            catch(TaskCanceledException)
+            {
+                return _fallback.HistoryFallback(name);
+            }
         }
         public string ForecastURL()
         {
@@ -168,16 +203,22 @@ namespace WeatherForecast.Pages
 
         public async Task<bool> ApiResponse()
         {
-            var getForecastApi = await _httpClient.GetAsync(ForecastURL());
-            var getHistoryApi = await _httpClient.GetAsync(HistoryURL());
-            var getLocationApi = await _httpClient.GetAsync(url);
-            if (getForecastApi.IsSuccessStatusCode && getHistoryApi.IsSuccessStatusCode && getLocationApi.IsSuccessStatusCode)
+            try
             {
-                return true;
+                var getForecastApi = await _httpClient.GetAsync(ForecastURL());
+                var getHistoryApi = await _httpClient.GetAsync(HistoryURL());
+                var getLocationApi = await _httpClient.GetAsync(url);
+                if (getForecastApi.IsSuccessStatusCode && getHistoryApi.IsSuccessStatusCode && getLocationApi.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch (TaskCanceledException)
+            {
+                return false;
+            }
         }
-
 
         public HourlyViewModel Hours(NestedForecast hourlyWeather)
         {
