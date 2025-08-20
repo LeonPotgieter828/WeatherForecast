@@ -48,7 +48,7 @@ namespace WeatherForecast.Operations
                 Tempareture = currentTable.Temperature,
                 WindDirection = double.Parse(currentTable.WindDirection),
                 WindSpeed = currentTable.WindSpeed,
-                IsDayTime = currentTable.IsDayTime ? 1 : 0,
+                DayOrNight = IsDayOrNight(currentTable.IsDayTime ? 1 : 0),
                 WeatherCodeString = currentTable.WeatherCode,
             };
             nested.NestedF.CrForecast = currentModel;  
@@ -105,6 +105,12 @@ namespace WeatherForecast.Operations
             var locationTable = _forecast.Location;
             var locationID = locationTable.Where(x => x.City == name).FirstOrDefault();
             return locationID.LocationID;
+        }
+
+        public string IsDayOrNight(int isDay)
+        {
+            string dayOrNight = isDay == 1 ? "Day" : "Night";
+            return dayOrNight;
         }
     }
 }
