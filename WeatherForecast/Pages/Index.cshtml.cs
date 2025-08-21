@@ -39,8 +39,9 @@ namespace WeatherForecast.Pages
             _fallback = new DbFallback(_forecast);
         }
 
-        public async Task OnGet()
+        public async Task OnGet(string searchName)
         {
+                SearchName = string.IsNullOrWhiteSpace(searchName) ? "Port Elizabeth" : searchName;
                 nested = await BuildForecastAsync(SearchName);
                 _trend = TrendBuilder(nested);
                 await _db.StoreAndUpdate(nested, ApiSuccess);
