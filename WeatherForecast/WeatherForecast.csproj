@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\images\clear-sky.png" />
+    <None Include="wwwroot\images\clouds.png" />
+    <None Include="wwwroot\images\day-and-night.png" />
+    <None Include="wwwroot\images\rain.png" />
+    <None Include="wwwroot\images\sun.png" />
+    <None Include="wwwroot\images\temp.png" />
+    <None Include="wwwroot\images\wind.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
       <PrivateAssets>all</PrivateAssets>

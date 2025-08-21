@@ -24,33 +24,54 @@
     </div>
     <div class="current-info-box">
         <div class="box">
-            <p>Temp: @Model.nested.NestedF.CrForecast.Tempareture</p>
-            <p>Wind Direction: @Model.nested.NestedF.CrForecast.WindDirection</p>
+            <div class="local-box">
+                <div class="local-icon">
+                    <img src="images/temp.png"/>
+                </div>
+                <p><span>@Model.nested.NestedF.CrForecast.Tempareture</span>°</p>
+            </div>
+            <div class="local-box">
+                <div class="local-icon">
+                    <img src="images/wind-direction.png"/>
+                </div>
+                <p><span>@Model.nested.NestedF.CrForecast.WindDirection</span>°</p>
+            </div>
         </div>
         <div class="box2">
-            <div class="image-icon">
-                <img />
+            <p class="weather-code">@Model.nested.NestedF.CrForecast.WeatherCodeString</p>
+            <div class="weather-icon">
+                <img src="images/sun.png"/>
             </div>
-            <p>Weather Code: @Model.nested.NestedF.CrForecast.WeatherCodeString</p>
         </div>
         <div class="box">
-            <p>Wind Speed: @Model.nested.NestedF.CrForecast.WindSpeed km/h</p>
-            <p>Is day or night: @Model.nested.NestedF.CrForecast.DayOrNight</p>
+            <div class="local-box">
+                <div class="local-icon">
+                    <img src="images/wind.png"/>
+                </div>
+                <p><span>@Model.nested.NestedF.CrForecast.WindSpeed</span> km/h</p>
+            </div>
+            <div class="local-box">
+                <div class="local-icon">
+                    <img src="images/day-and-night.png"/>
+                </div>
+                <p>@Model.nested.NestedF.CrForecast.DayOrNight</p>
+            </div>
         </div>
     </div>
+
     <div class="hourly-container">
         @for (int i = 0; i < Model.nested.NestedF.HrForecast.Rain.Count; i++)
         {
             <div class="hourly-box">
                 <p class="timeHead">@Model.nested.NestedF.HrForecast.TimeString[i]</p>
-                <div class="temp-img">
-                    <img />
+                <div class="hourly-img">
+                    <img src="images/time-temp.png"/>
                 </div>
-                <p>@Model.nested.NestedF.HrForecast.Temp[i]</p>
-                <div class="rain-img">
-                    <img />
+                <p><span>@Model.nested.NestedF.HrForecast.Temp[i]</span>°</p>
+                <div class="hourly-img">
+                    <img src="images/drop.png"/>
                 </div>
-                <p>@Model.nested.NestedF.HrForecast.Rain[i]</p>
+                <p>@Model.nested.NestedF.HrForecast.Rain[i]<span style="font-size: 13px">mm<span></span></p>
             </div>
         }
     </div>
@@ -83,11 +104,11 @@
             <div class="minmaxContainer">
                 <div class="min">
                     <p class="minHeading">min</p>
-                    <p class="minTemp">@Model.nested.NestedF.DlForecast.MaxTempareture[i]</p>
+                    <p class="minTemp">@Model.nested.NestedF.DlForecast.MinTempareture[i]</p>
                 </div>
                 <div class="max">
                     <p class="maxHeading">max</p>
-                    <p class="maxTemp">@Model.nested.NestedF.DlForecast.MinTempareture[i]</p>
+                    <p class="maxTemp">@Model.nested.NestedF.DlForecast.MaxTempareture[i]</p>
                 </div>
             </div>
             <p class="weather">@Model.nested.NestedF.DlForecast.WindSpeed[i] km/h</p>
@@ -105,17 +126,15 @@
             <thead>
                 <th>Date</th>
                 <th>Tempareture</th>
-                <th>Wind Speed km/h</th>
-                <th>Rain mm</th>
+                <th>Wind Speed</th>
             </thead>
             <tbody>
                 @for (int i = 0; i < Model.nested.NestedH.History.Temp.Count; i++)
                 {
                     <tr>
                         <td>@Model.nested.NestedH.History.Recorded[i]</td>
-                        <td>@Model.nested.NestedH.History.Temp[i]</td>
-                        <td>@Model.nested.NestedH.History.WindSpeed[i]</td>
-                        <td>@Model.nested.NestedH.History.Rain[i]</td>
+                        <td>@Model.nested.NestedH.History.Temp[i]<span>°</span></td>
+                        <td>@Model.nested.NestedH.History.WindSpeed[i] <span>km/h</span></td>
                     </tr>
                 }
             </tbody>
@@ -128,17 +147,15 @@
             <thead>
                 <th>Date</th>
                 <th>Tempareture</th>
-                <th>Wind Speed km/h</th>
-                <th>Rain mm</th>
+                <th>Wind Speed</th>
             </thead>
             <tbody>
                 @for (int i = 1; i < Model.nested.NestedF.DlForecast.MaxTempareture.Count; i++)
                 {
                     <tr>
                         <td>@Model.nested.NestedF.DlForecast.Date[i]</td>
-                        <td>@Model.nested.NestedF.DlForecast.MaxTempareture[i]</td>
-                        <td>@Model.nested.NestedF.DlForecast.WindSpeed[i]</td>
-                        <td>@Model.nested.NestedF.DlForecast.RainSum[i]</td>
+                        <td>@Model.nested.NestedF.DlForecast.MaxTempareture[i]<span>°</span></td>
+                        <td>@Model.nested.NestedF.DlForecast.WindSpeed[i] <span>km/h</span></td>
                     </tr>
                 }
             </tbody>
@@ -149,15 +166,15 @@
         <h4>Averages Daily Forecast</h4>
         <table class="table">
             <thead>
-                <th>Average Tempareture</th>
-                <th>Average Wind km/h</th>
+                <th>Tempareture</th>
+                <th>Wind Speed</th>
             </thead>
             <tbody>
                 @for (int i = 0; i < Model._trend.TempAvg.Count; i++)
                 {
                     <tr>
-                        <td>@Model._trend.TempAvg[i]</td>
-                        <td>@Model._trend.WindAvg[i]</td>
+                        <td>@Model._trend.TempAvg[i]<span>°</span></td>
+                        <td>@Model._trend.WindAvg[i] <span>km/h</span></td>
                     </tr>
                 }
             </tbody>
@@ -176,6 +193,13 @@
         font-size: 22px;
         color: white;
         text-align: center;
+    }
+
+    h3{
+        font-weight: 700;
+        font-size: 30px;
+        letter-spacing: 1.2px;
+        color: white;
     }
 
     .search-container{
@@ -213,6 +237,18 @@
         margin-bottom: 20px;
     }
 
+    .current-info-box p{
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .current-info-box .weather-code{
+        font-size: 22px;
+        font-weight: 600;
+        color: white;
+    }
+
     .current-box{
         display: flex;
         flex-direction: column;
@@ -227,7 +263,9 @@
     }
 
         .current-box .location{
-            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
         }
 
     .current-info-box{
@@ -247,6 +285,43 @@
         align-items: center;
         justify-content: center;
     }
+
+    .local-box{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .local-icon{
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .local-icon img{
+        width: 100%;
+    }
+    
+    .box2{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        row-gap: 8px;
+    }
+
+    .weather-icon{
+        display: flex;
+        align-items: center;
+        width: 150px;
+    }
+
+        .weather-icon img{
+            width: 100%;
+        }
 
     .hourly-container{
         display: flex;
@@ -279,18 +354,18 @@
             height: 20px;
         }
 
-        .hourly-box .temp-img{
+        .hourly-box .hourly-img {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 45px;
+            width: 25px;
+            margin-left: 8px;
         }
-        .hourly-box .rain-img{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 45px;
-        }
+
+            .hourly-box .hourly-img img{
+                width: 100%;
+            }
+
 
     .compare-container{
         display: flex;
