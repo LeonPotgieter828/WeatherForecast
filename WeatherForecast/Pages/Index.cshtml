@@ -5,6 +5,7 @@
 }
 
 <h2 style="text-align: center; font-size: 40px; font-weight: 700; margin-bottom: 50px">Weather of Today</h2>
+<p style="text-align: center">@ViewData["message"]</p>
 <form class="search-container" method="Post">
         <input id="searchName" class="search-bar" type="text" placeholder="Search" asp-for="SearchName" />
         <input class="search-button" type="image" alt="Sumit" src="images/glass.png"/>
@@ -24,7 +25,7 @@
                     <div class="local-icon">
                         <img src="images/temp.png"/>
                     </div>
-                    <p><span>@Model.nested.NestedF.CrForecast.Tempareture</span>°</p>
+                    <p><span>@Math.Round(Model.nested.NestedF.CrForecast.Tempareture, 0)</span>°</p>
                 </div>
                 <div class="local-box">
                     <div class="local-icon">
@@ -36,7 +37,7 @@
             <div class="box2">
                 <p class="weather-code">@Model.nested.NestedF.CrForecast.WeatherCodeString</p>
                 <div class="weather-icon">
-                    <img src="images/sun.png"/>
+                    <img src="@Model.nested.NestedF.CrForecast.WeatherImage" />
                 </div>
             </div>
             <div class="box">
@@ -44,7 +45,7 @@
                     <div class="local-icon">
                         <img src="images/wind.png"/>
                     </div>
-                    <p><span>@Model.nested.NestedF.CrForecast.WindSpeed</span> km/h</p>
+                    <p><span>@Math.Round(Model.nested.NestedF.CrForecast.WindSpeed, 0)</span> km/h</p>
                 </div>
                 <div class="local-box">
                     <div class="local-icon">
@@ -63,7 +64,7 @@
                     <div class="hourly-img">
                         <img src="images/time-temp.png"/>
                     </div>
-                    <p><span>@Model.nested.NestedF.HrForecast.Temp[i]</span>°</p>
+                    <p><span>@Math.Round(Model.nested.NestedF.HrForecast.Temp[i], 0)</span>°</p>
                     <div class="hourly-img">
                         <img src="images/drop.png"/>
                     </div>
@@ -100,14 +101,14 @@
                 <div class="minmaxContainer">
                     <div class="min">
                         <p class="minHeading">min</p>
-                        <p class="minTemp">@Model.nested.NestedF.DlForecast.MinTempareture[i]</p>
+                        <p class="minTemp">@Math.Round(Model.nested.NestedF.DlForecast.MinTempareture[i], 0)</p>
                     </div>
                     <div class="max">
                         <p class="maxHeading">max</p>
-                        <p class="maxTemp">@Model.nested.NestedF.DlForecast.MaxTempareture[i]</p>
+                        <p class="maxTemp">@Math.Round(Model.nested.NestedF.DlForecast.MaxTempareture[i], 0)</p>
                     </div>
                 </div>
-                <p class="weather">@Model.nested.NestedF.DlForecast.WindSpeed[i] km/h</p>
+                <p class="weather">@Math.Round(Model.nested.NestedF.DlForecast.WindSpeed[i], 0) km/h</p>
                 <p class="weather">@Model.nested.NestedF.DlForecast.RainSum[i] mm</p>
             </div>
             }
@@ -129,8 +130,8 @@
                     {
                         <tr>
                             <td>@Model.nested.NestedH.History.Recorded[i]</td>
-                            <td>@Model.nested.NestedH.History.Temp[i]<span>°</span></td>
-                            <td>@Model.nested.NestedH.History.WindSpeed[i] <span>km/h</span></td>
+                            <td>@Math.Round(Model.nested.NestedH.History.Temp[i], 0)<span>°</span></td>
+                            <td>@Math.Round(Model.nested.NestedH.History.WindSpeed[i], 0) <span>km/h</span></td>
                         </tr>
                     }
                 </tbody>
@@ -150,8 +151,8 @@
                     {
                         <tr>
                             <td>@Model.nested.NestedF.DlForecast.Date[i]</td>
-                            <td>@Model.nested.NestedF.DlForecast.MaxTempareture[i]<span>°</span></td>
-                            <td>@Model.nested.NestedF.DlForecast.WindSpeed[i] <span>km/h</span></td>
+                            <td>@Math.Round(Model.nested.NestedF.DlForecast.MaxTempareture[i], 0)<span>°</span></td>
+                            <td>@Math.Round(Model.nested.NestedF.DlForecast.WindSpeed[i], 0) <span>km/h</span></td>
                         </tr>
                     }
                 </tbody>

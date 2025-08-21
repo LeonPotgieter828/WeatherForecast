@@ -18,6 +18,9 @@ namespace WeatherForecast.Pages
         public double longitude { get; set; }
         public double latitude { get; set; }
         public string url { get; set; }
+        public string TempLocation { get; set; }
+
+        string message = "";
 
         private readonly ILogger<IndexModel> _logger;
 
@@ -28,6 +31,7 @@ namespace WeatherForecast.Pages
         public DbFallback _fallback { get; set; }
         public Task<bool> ApiSuccess { get; set; }
         public Trending _trend { get; set; }
+        public ApiOperations _api { get; set; }
 
         public ForecastDbContext _forecast;
 
@@ -37,21 +41,20 @@ namespace WeatherForecast.Pages
             _forecast = forecast;
             _db = new DbOperations(_forecast);
             _fallback = new DbFallback(_forecast);
+            _api = new ApiOperations(_forecast);
         }
 
         public async Task OnGet(string searchName)
         {
                 SearchName = string.IsNullOrWhiteSpace(searchName) ? "Port Elizabeth" : searchName;
-                nested = await BuildForecastAsync(SearchName);
-                _trend = TrendBuilder(nested);
-                await _db.StoreAndUpdate(nested, ApiSuccess);
+                nested = await BuildForecast(SearchName);
+                ViewData["message"] = message;
         }
 
         public async Task<IActionResult> OnPost()
         {      
-            nested = await BuildForecastAsync(SearchName);
-            _trend = TrendBuilder(nested);
-            await _db.StoreAndUpdate(nested, ApiSuccess);
+            nested = await BuildForecast(SearchName);
+            ViewData["message"] = message;
             return Page();
         }
 
@@ -62,7 +65,7 @@ namespace WeatherForecast.Pages
             return tren;
         }
 
-        private async Task<AllWeatherNested> BuildForecastAsync(string searchName)
+        private async Task<AllWeatherNested> BuildForecast(string searchName)
         {
             if (searchName.IsNullOrEmpty())
             {
@@ -74,177 +77,75 @@ namespace WeatherForecast.Pages
                 NestedF = new NestedForecast
                 {
                     Location = await LocationSearch(searchName),
-                    CrForecast = await CurrentWeather(searchName),
-                    HrForecast = await HourlyWeather(searchName),
-                    DlForecast = await DailyWeather(searchName),
+                    CrForecast = await _api.CurrentWeather(TempLocation),
+                    HrForecast = await _api.HourlyWeather(TempLocation),
+                    DlForecast = await _api.DailyWeather(TempLocation),
                 },
 
                 NestedH = new NestedHistory
                 {
-                    History = await HistoryForecast(searchName)
+                    History = await _api.HistoryForecast(TempLocation)
                 }
             };
-            ApiSuccess = ApiResponse();
+            ApiSuccess = _api.ApiResponse(url);
+            _trend = TrendBuilder(nes);
+            await _db.StoreAndUpdate(nes, ApiSuccess);
             return nes;
         }
+
+        public async Task<string> LocationApi(string name)
+        {
+            TempLocation = TempData["LastStored"]?.ToString();
+            TempData.Keep("LastStored");
+
+            url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
+            var getResponse = await _httpClient.GetAsync(url);
+
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var location = JsonSerializer.Deserialize<NestedForecast>(json);
+                    if (location.Location != null)
+                    {
+                        TempData["LastStored"] = name;
+                        message = "";
+                        return url;
+                    }
+                    else
+                    {
+                        message = "Location was not found";                      
+                        url = $"https://geocoding-api.open-meteo.com/v1/search?name={TempLocation}&count=1&language=en&format=json";
+                    }
+                }            
+            return url;
+        }
+
         public async Task<List<LocationViewModel>> LocationSearch(string name)
         {
             try
             {
-                url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
+                url = await LocationApi(name);
                 var getResponse = await _httpClient.GetAsync(url);
                 if (getResponse.IsSuccessStatusCode)
                 {
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var location = JsonSerializer.Deserialize<NestedForecast>(json);
+
                     var getLocation = location.Location.FirstOrDefault();
                     longitude = getLocation.Longitude;
                     latitude = getLocation.Latitude;
                     return location.Location;
                 }
-                return _fallback.LocationFallback(name);
+                return _fallback.LocationFallback(TempLocation);
             }
             catch (TaskCanceledException)
             {
-                return _fallback.LocationFallback(name);
+                return _fallback.LocationFallback(TempLocation);
             }
         }
 
-        public async Task<CurrentViewModel?> CurrentWeather(string name)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                    currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
-                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
-                    return currentWeather.CrForecast;
-                }
-                return _fallback.CurrentFallback(name);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.CurrentFallback(name);
-            }
-        } 
 
-        public async Task<HourlyViewModel> HourlyWeather(string name)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                    var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
-                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
-                    return Hours(hourlyWeather);
-                }
-                return _fallback.HourlyFallback(name);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.HourlyFallback(name);
-            }
-        }
-
-        public async Task<DailyViewModel> DailyWeather(string name)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                    return dailyWeather.DlForecast;
-                }
-                return _fallback.DailyFallback(name);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.DailyFallback(name);
-            }
-        }
-
-        public async Task<HistoryViewModel> HistoryForecast(string name)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(HistoryURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var history = JsonSerializer.Deserialize<NestedHistory>(json);
-                    history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
-                    return history.History;
-                }
-                return _fallback.HistoryFallback(name);
-            }
-            catch(TaskCanceledException)
-            {
-                return _fallback.HistoryFallback(name);
-            }
-        }
-        public string ForecastURL()
-        {
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,rain_sum&hourly=temperature_2m,rain&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&timezone=auto";
-            return url;
-        }
-
-        public string HistoryURL()
-        {
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=weather_code,temperature_2m_max,rain_sum,wind_speed_10m_max,temperature_2m_min&current=weather_code&past_days=5&forecast_days=1";
-            return url;
-        }
-
-        public async Task<bool> ApiResponse()
-        {
-            try
-            {
-                var getForecastApi = await _httpClient.GetAsync(ForecastURL());
-                var getHistoryApi = await _httpClient.GetAsync(HistoryURL());
-                var getLocationApi = await _httpClient.GetAsync(url);
-                if (getForecastApi.IsSuccessStatusCode && getHistoryApi.IsSuccessStatusCode && getLocationApi.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                return false;
-            }
-            catch (TaskCanceledException)
-            {
-                return false;
-            }
-        }
-
-        public HourlyViewModel Hours(NestedForecast hourlyWeather)
-        {
-            var today = DateTime.Today;
-
-            var filteredTimes = new List<DateTime>();
-            var filteredTemps = new List<double>();
-            var filteredRain = new List<double>();
-
-            for (int i = 0; i < hourlyWeather.HrForecast.Time.Count; i++)
-            {
-                if (hourlyWeather.HrForecast.Time[i].Date == today)
-                {
-                    filteredTimes.Add(hourlyWeather.HrForecast.Time[i]);
-                    filteredTemps.Add(hourlyWeather.HrForecast.Temp[i]);
-                    filteredRain.Add(hourlyWeather.HrForecast.Rain[i]);
-                }
-            }
-
-             hourlyWeather.HrForecast.Time = filteredTimes;
-             hourlyWeather.HrForecast.Temp = filteredTemps;
-             hourlyWeather.HrForecast.Rain = filteredRain;
-
-            return hourlyWeather.HrForecast;
-        }
+        
 
         
     }

@@ -256,7 +256,7 @@ namespace WeatherForecast.Operations
             switch (code)
             {
                 case 0:
-                    condition = "Mainly clear";
+                    condition = "clear sky";
                     break;
                 case 1:
                     condition = "Mainly clear";

@@ -25,5 +25,6 @@ namespace WeatherForecast.ViewModels
 
         public string DayOrNight { get; set; }
         public string WeatherCodeString { get; set; }
+        public string WeatherImage { get; set; }
     }
 }
