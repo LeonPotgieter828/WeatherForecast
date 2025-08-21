@@ -65,8 +65,8 @@ namespace WeatherForecast.Pages
         {
             if (searchName.IsNullOrEmpty())
             {
-                searchName = "Port Elizabeth";
-                SearchName = searchName;
+                SearchName = "Port Elizabeth";
+                searchName = SearchName;
             }
             var nes = new AllWeatherNested
             {

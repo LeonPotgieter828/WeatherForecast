@@ -4,15 +4,13 @@
     ViewData["Title"] = "Index";
 }
 
-<h1 style="text-align: center">Welcome to Weathery Weather</h1>
+<h2 style="text-align: center; font-size: 40px; font-weight: 700; margin-bottom: 50px">Weather of Today</h2>
 <form class="search-container" method="Post">
     <div class="search-bar">
         <input class="search-input" type="text" placeholder="Search" asp-for="SearchName"/>
         <input class="search-button" type="submit" value="Search"/>
     </div>
 </form>
-
-<h2 style="text-align: center">Weather of Today</h2>
 
 <container class="current-container">
     <div class="current-box">
@@ -129,7 +127,7 @@
                 <th>Wind Speed</th>
             </thead>
             <tbody>
-                @for (int i = 0; i < Model.nested.NestedH.History.Temp.Count; i++)
+                @for (int i = 1; i < 6; i++)
                 {
                     <tr>
                         <td>@Model.nested.NestedH.History.Recorded[i]</td>
@@ -150,7 +148,7 @@
                 <th>Wind Speed</th>
             </thead>
             <tbody>
-                @for (int i = 1; i < Model.nested.NestedF.DlForecast.MaxTempareture.Count; i++)
+                @for (int i = 0; i < 5; i++)
                 {
                     <tr>
                         <td>@Model.nested.NestedF.DlForecast.Date[i]</td>
@@ -207,6 +205,7 @@
         width: 100%;
         align-items: center;
         justify-content: center;
+        margin-bottom: 40px;
     }
 
     .search-container .search-bar{
@@ -234,8 +233,10 @@
         align-items: center;
         width: 100%;
         column-gap: 40px;
-        margin-bottom: 20px;
+        margin-bottom: 40px;
     }
+
+
 
     .current-info-box p{
         font-size: 18px;
@@ -260,6 +261,9 @@
         border-radius: 10px;
         background-color: rgba(10, 10, 10, 0.8);
         color: white;
+        box-shadow: 5px 5px 30px rgb(25, 25, 25);
+        border-top: #D9D9D9 2px solid;
+        border-left: #D9D9D9 2px solid;
     }
 
         .current-box .location{
@@ -275,6 +279,9 @@
         border-radius: 10px;
         background-color: rgba(10, 10, 10, 0.8);
         color: white;
+        box-shadow: 5px 5px 30px rgb(25, 25, 25);
+        border-top: #D9D9D9 2px solid;
+        border-left: #D9D9D9 2px solid;
     }
 
     .current-info-box .box{
@@ -331,6 +338,7 @@
         overflow-y: auto;
         row-gap: 5px;
         height: 250px;
+        padding: 10px;
     }
 
     .hourly-box{
@@ -345,6 +353,8 @@
         border: none;
         flex-shrink: 0;
         column-gap: 8px;
+        box-shadow: 0px 0px 10px rgb(25, 25, 25);
+        border: #D9D9D9 1px solid;
     }
 
         .hourly-box p{
@@ -379,6 +389,8 @@
             background-color: rgba(10, 10, 10, 0.8);
             border-radius: 10px;
             flex: 1;
+            box-shadow: 0px 0px 10px rgb(25, 25, 25);
+            border: black 1.5px solid;
         }
         
         .con2{
@@ -389,6 +401,8 @@
             background-color: rgba(10, 10, 10, 0.8);
             border-radius: 10px;
             width: 300px;
+            box-shadow: 0px 0px 10px rgb(25, 25, 25);
+            border: black 1.5px solid;
         }
 
     .table{
@@ -439,7 +453,7 @@
         border-radius: 10px;
         backdrop-filter: blur(30px);
         background-color: rgba(10, 10, 10, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.089);
+        border: 1px solid #D9D9D9;
         cursor: pointer;
     }
 
