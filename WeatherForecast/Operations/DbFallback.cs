@@ -64,7 +64,7 @@ namespace WeatherForecast.Operations
             {
                 Rain = hourlyTable.Select(x => x.Rain).ToList(),
                 Temp = hourlyTable.Select(x => x.Tempareture).ToList(),
-                TimeString = hourlyTable.Select(x => x.ForecastTime.ToString("hh:mm")).ToList(),
+                TimeString = hourlyTable.Select(x => x.ForecastTime.ToString("hh:mm tt")).ToList(),
             };
             nested.NestedF.HrForecast = hourlyFallback;
             return hourlyFallback;
@@ -180,10 +180,10 @@ namespace WeatherForecast.Operations
                     condition = "images/sun.png";
                     break;
                 case "Mainly clear":
-                    condition = "images/sun.png";
+                    condition = "images/clear-sky.png";
                     break;
                 case "partly cloudy":
-                    condition = "images/clear-sky.png";
+                    condition = "images/partly-cloudy.png";
                     break;
                 case "overcast":
                     condition = "images/clouds.png";

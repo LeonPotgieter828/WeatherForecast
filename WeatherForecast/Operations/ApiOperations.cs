@@ -27,6 +27,34 @@ namespace WeatherForecast.Operations
             _fallback = new DbFallback(_forecast);
         }
 
+        public async Task<List<LocationViewModel>> LocationSearch(string TempLocation, string locationUrl, bool api)
+        {
+            try
+            {
+                var url = locationUrl;
+                var getResponse = await _httpClient.GetAsync(url);
+                if (getResponse.IsSuccessStatusCode && api)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var location = JsonSerializer.Deserialize<NestedForecast>(json);
+
+                    var getLocation = location.Location.FirstOrDefault();
+                    longitude = getLocation.Longitude;
+                    latitude = getLocation.Latitude;
+                    return location.Location;
+                }
+                return _fallback.LocationFallback(TempLocation);
+            }
+            catch (TaskCanceledException)
+            {
+                return _fallback.LocationFallback(TempLocation);
+            }
+            catch (HttpRequestException)
+            {
+                return _fallback.LocationFallback(TempLocation);
+            }
+        }
+
         public async Task<CurrentViewModel?> CurrentWeather(string TempLocation, bool apiResponse)
         {
             try
@@ -37,13 +65,17 @@ namespace WeatherForecast.Operations
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
                     currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
-                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
+                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.WeatherCode);
                     currentWeather.CrForecast.WeatherImage = _fallback.WeatherImage(currentWeather.CrForecast.WeatherCode);
                     return currentWeather.CrForecast;
                 }
                 return _fallback.CurrentFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.CurrentFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.CurrentFallback(TempLocation);
             }
@@ -59,12 +91,16 @@ namespace WeatherForecast.Operations
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
                     var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
-                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
+                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm tt")).ToList();
                     return Hours(hourlyWeather);
                 }
                 return _fallback.HourlyFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.HourlyFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.HourlyFallback(TempLocation);
             }
@@ -86,6 +122,10 @@ namespace WeatherForecast.Operations
             {
                 return _fallback.DailyFallback(TempLocation);
             }
+            catch (HttpRequestException)
+            {
+                return _fallback.DailyFallback(TempLocation);
+            }
         }
 
         public async Task<HistoryViewModel> HistoryForecast(string TempLocation, bool apiResponse)
@@ -103,6 +143,10 @@ namespace WeatherForecast.Operations
                 return _fallback.HistoryFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.HistoryFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.HistoryFallback(TempLocation);
             }

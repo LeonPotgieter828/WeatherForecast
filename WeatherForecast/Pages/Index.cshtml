@@ -15,7 +15,10 @@
         <div class="current-box">
             @foreach (var item in Model.nested.NestedF.Location)
             {
-                <h3>Location</h3>
+                <div class="location-icon">
+                    <img src="images/location.png"/>
+                </div>
+                <p class="current-date">@Model.nested.NestedF.DlForecast.Date[0].ToString("dddd, dd MMM")</p>
                 <p class="location"><span>@item.Region</span>, @item.City</p>
             }
         </div>
@@ -101,7 +104,7 @@
                 <div class="minmaxContainer">
                     <div class="min">
                         <p class="minHeading">min</p>
-                        <p class="minTemp">@Math.Round(Model.nested.NestedF.DlForecast.MinTempareture[i], 0)</p>
+                        <p class="minTemp">@Math.Round(Model.nested.NestedF.DlForecast.MinTempareture[i], 1)</p>
                     </div>
                     <div class="max">
                         <p class="maxHeading">max</p>
@@ -155,6 +158,11 @@
                             <td>@Math.Round(Model.nested.NestedF.DlForecast.WindSpeed[i], 0) <span>km/h</span></td>
                         </tr>
                     }
+                    <tr>
+                        <td>Weekly Avg</td>
+                        <td>min: @Model._trend.WeeklyMaxTemp<span>°</span> | max: @Model._trend.WeeklyMinTemp<span>°</span></td>
+                        <td>@Model._trend.WeeklyMinTemp <span>km/h</span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -202,7 +210,7 @@
 
     h3{
         font-weight: 700;
-        font-size: 30px;
+        font-size: 38px;
         letter-spacing: 1.2px;
         color: white;
     }
@@ -241,7 +249,16 @@
         margin-bottom: 40px;
     }
 
-
+    .location-icon{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+    }
+    
+    .location-icon img{
+        width: 100%;
+    }
 
     .current-info-box p{
         font-size: 18px;
@@ -272,7 +289,7 @@
     }
 
         .current-box .location{
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: white;
         }
