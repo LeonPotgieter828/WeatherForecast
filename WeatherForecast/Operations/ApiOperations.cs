@@ -61,7 +61,7 @@ namespace WeatherForecast.Operations
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
                     currentWeather.CrForecast.DayOrNight = _fallback.IsDayOrNight(currentWeather.CrForecast.IsDayTime);
-                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.IsDayTime);
+                    currentWeather.CrForecast.WeatherCodeString = _db.WeatherCode(currentWeather.CrForecast.WeatherCode);
                     currentWeather.CrForecast.WeatherImage = _fallback.WeatherImage(currentWeather.CrForecast.WeatherCode);
                     return currentWeather.CrForecast;
                 }
@@ -83,7 +83,7 @@ namespace WeatherForecast.Operations
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
                     var today = hourlyWeather.HrForecast.Time.Where(x => x.Date == DateTime.Today.Date).ToList();
-                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm")).ToList();
+                    hourlyWeather.HrForecast.TimeString = today.Select(t => t.ToString("hh:mm tt")).ToList();
                     return Hours(hourlyWeather);
                 }
                 return _fallback.HourlyFallback(TempLocation);

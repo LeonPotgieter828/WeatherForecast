@@ -180,10 +180,10 @@ namespace WeatherForecast.Operations
                     condition = "images/sun.png";
                     break;
                 case "Mainly clear":
-                    condition = "images/sun.png";
+                    condition = "images/clear-sky.png";
                     break;
                 case "partly cloudy":
-                    condition = "images/clear-sky.png";
+                    condition = "images/partly-cloudy.png";
                     break;
                 case "overcast":
                     condition = "images/clouds.png";

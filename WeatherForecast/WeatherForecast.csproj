@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\images\clear-sky.png" />
     <None Include="wwwroot\images\clouds.png" />
     <None Include="wwwroot\images\day-and-night.png" />
     <None Include="wwwroot\images\rain.png" />
