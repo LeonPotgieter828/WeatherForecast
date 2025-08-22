@@ -64,7 +64,7 @@ namespace WeatherForecast.Operations
             {
                 Rain = hourlyTable.Select(x => x.Rain).ToList(),
                 Temp = hourlyTable.Select(x => x.Tempareture).ToList(),
-                TimeString = hourlyTable.Select(x => x.ForecastTime.ToString("hh:mm")).ToList(),
+                TimeString = hourlyTable.Select(x => x.ForecastTime.ToString("hh:mm tt")).ToList(),
             };
             nested.NestedF.HrForecast = hourlyFallback;
             return hourlyFallback;
