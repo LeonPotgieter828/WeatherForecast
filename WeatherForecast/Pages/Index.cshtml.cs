@@ -15,15 +15,7 @@ namespace WeatherForecast.Pages
     {
         [BindProperty]
         public string SearchName { get; set; }
-        public double longitude { get; set; }
-        public double latitude { get; set; }
         public string TempLocation { get; set; }
-
-        string message = "";
-
-        private readonly ILogger<IndexModel> _logger;
-
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         public AllWeatherNested nested { get; set; }
         public DbOperations _db { get; set; }
@@ -33,6 +25,9 @@ namespace WeatherForecast.Pages
         public ApiOperations _api { get; set; }
 
         public ForecastDbContext _forecast;
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly ILogger<IndexModel> _logger;
+        string message = "";
 
         public IndexModel(ILogger<IndexModel> logger, ForecastDbContext forecast)
         {
@@ -77,7 +72,7 @@ namespace WeatherForecast.Pages
             {
                 NestedF = new NestedForecast
                 {
-                    Location = await LocationSearch(searchName),
+                    Location = await _api.LocationSearch(searchName, await LocationApi(searchName), await ApiSuccess),
                     CrForecast = await _api.CurrentWeather(TempLocation, await ApiSuccess),
                     HrForecast = await _api.HourlyWeather(TempLocation, await ApiSuccess),
                     DlForecast = await _api.DailyWeather(TempLocation, await ApiSuccess),
@@ -126,34 +121,6 @@ namespace WeatherForecast.Pages
             }            
             return url;
         }
-
-        public async Task<List<LocationViewModel>> LocationSearch(string name)
-        {
-            try
-            {
-                var url = await LocationApi(name);
-                var getResponse = await _httpClient.GetAsync(url);
-                if (getResponse.IsSuccessStatusCode && await ApiSuccess)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var location = JsonSerializer.Deserialize<NestedForecast>(json);
-
-                    var getLocation = location.Location.FirstOrDefault();
-                    longitude = getLocation.Longitude;
-                    latitude = getLocation.Latitude;
-                    return location.Location;
-                }
-                return _fallback.LocationFallback(TempLocation);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.LocationFallback(TempLocation);
-            }
-        }
-
-
-        
-
-        
+      
     }
 }

@@ -27,6 +27,30 @@ namespace WeatherForecast.Operations
             _fallback = new DbFallback(_forecast);
         }
 
+        public async Task<List<LocationViewModel>> LocationSearch(string TempLocation, string locationUrl, bool api)
+        {
+            try
+            {
+                var url = locationUrl;
+                var getResponse = await _httpClient.GetAsync(url);
+                if (getResponse.IsSuccessStatusCode && api)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var location = JsonSerializer.Deserialize<NestedForecast>(json);
+
+                    var getLocation = location.Location.FirstOrDefault();
+                    longitude = getLocation.Longitude;
+                    latitude = getLocation.Latitude;
+                    return location.Location;
+                }
+                return _fallback.LocationFallback(TempLocation);
+            }
+            catch (TaskCanceledException)
+            {
+                return _fallback.LocationFallback(TempLocation);
+            }
+        }
+
         public async Task<CurrentViewModel?> CurrentWeather(string TempLocation, bool apiResponse)
         {
             try
