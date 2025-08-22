@@ -67,12 +67,13 @@ namespace WeatherForecast.Pages
                 searchName = SearchName;
             }
             ApiSuccess = _api.ApiResponse(await LocationApi(searchName));
+            await LocationApi(searchName);  
 
             var nes = new AllWeatherNested
             {
                 NestedF = new NestedForecast
                 {
-                    Location = await _api.LocationSearch(searchName, await LocationApi(searchName), await ApiSuccess),
+                    Location = await _api.LocationSearch(TempLocation, await LocationApi(searchName), await ApiSuccess),
                     CrForecast = await _api.CurrentWeather(TempLocation, await ApiSuccess),
                     HrForecast = await _api.HourlyWeather(TempLocation, await ApiSuccess),
                     DlForecast = await _api.DailyWeather(TempLocation, await ApiSuccess),
@@ -97,7 +98,7 @@ namespace WeatherForecast.Pages
 
             string url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
             var getResponse = await _httpClient.GetAsync(url);
-
+            
                 if (getResponse.IsSuccessStatusCode)
                 {
                     var json = await getResponse.Content.ReadAsStringAsync();
