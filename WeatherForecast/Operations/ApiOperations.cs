@@ -49,6 +49,10 @@ namespace WeatherForecast.Operations
             {
                 return _fallback.LocationFallback(TempLocation);
             }
+            catch (HttpRequestException)
+            {
+                return _fallback.LocationFallback(TempLocation);
+            }
         }
 
         public async Task<CurrentViewModel?> CurrentWeather(string TempLocation, bool apiResponse)
@@ -68,6 +72,10 @@ namespace WeatherForecast.Operations
                 return _fallback.CurrentFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.CurrentFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.CurrentFallback(TempLocation);
             }
@@ -92,6 +100,10 @@ namespace WeatherForecast.Operations
             {
                 return _fallback.HourlyFallback(TempLocation);
             }
+            catch (HttpRequestException)
+            {
+                return _fallback.HourlyFallback(TempLocation);
+            }
         }
         public async Task<DailyViewModel> DailyWeather(string TempLocation, bool apiResponse)
         {
@@ -107,6 +119,10 @@ namespace WeatherForecast.Operations
                 return _fallback.DailyFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.DailyFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.DailyFallback(TempLocation);
             }
@@ -127,6 +143,10 @@ namespace WeatherForecast.Operations
                 return _fallback.HistoryFallback(TempLocation);
             }
             catch (TaskCanceledException)
+            {
+                return _fallback.HistoryFallback(TempLocation);
+            }
+            catch (HttpRequestException)
             {
                 return _fallback.HistoryFallback(TempLocation);
             }

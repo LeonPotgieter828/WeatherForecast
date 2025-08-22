@@ -158,6 +158,11 @@
                             <td>@Math.Round(Model.nested.NestedF.DlForecast.WindSpeed[i], 0) <span>km/h</span></td>
                         </tr>
                     }
+                    <tr>
+                        <td>Weekly Avg</td>
+                        <td>min: @Model._trend.WeeklyMaxTemp<span>°</span> | max: @Model._trend.WeeklyMinTemp<span>°</span></td>
+                        <td>@Model._trend.WeeklyMinTemp <span>km/h</span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>

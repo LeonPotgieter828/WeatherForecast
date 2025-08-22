@@ -61,6 +61,7 @@ namespace WeatherForecast.Operations
             double total = 0;
             var daily = nested.NestedF.DlForecast;
             WeeklyWind = daily.WindSpeed.Take(7).Average();
+            WeeklyWind = Round(WeeklyWind);
             return WeeklyWind;
         }
         public double WeeklyMaxTempAvg(AllWeatherNested nested)
@@ -68,6 +69,7 @@ namespace WeatherForecast.Operations
             double total = 0;
             var daily = nested.NestedF.DlForecast;
             WeeklyMaxTemp = daily.MaxTempareture.Take(7).Average();
+            WeeklyMaxTemp = Round(WeeklyMaxTemp);
             return WeeklyMaxTemp;
         }
         
@@ -76,6 +78,7 @@ namespace WeatherForecast.Operations
             double total = 0;
             var daily = nested.NestedF.DlForecast;
             WeeklyMinTemp = daily.MinTempareture.Take(7).Average();
+            WeeklyMinTemp = Round(WeeklyMinTemp);
             return WeeklyMinTemp;
         }
 
