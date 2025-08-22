@@ -17,7 +17,6 @@ namespace WeatherForecast.Pages
         public string SearchName { get; set; }
         public double longitude { get; set; }
         public double latitude { get; set; }
-        public string url { get; set; }
         public string TempLocation { get; set; }
 
         string message = "";
@@ -66,28 +65,30 @@ namespace WeatherForecast.Pages
         }
 
         private async Task<AllWeatherNested> BuildForecast(string searchName)
-        {
+        {          
             if (searchName.IsNullOrEmpty())
             {
                 SearchName = "Port Elizabeth";
                 searchName = SearchName;
             }
+            ApiSuccess = _api.ApiResponse(await LocationApi(searchName));
+
             var nes = new AllWeatherNested
             {
                 NestedF = new NestedForecast
                 {
                     Location = await LocationSearch(searchName),
-                    CrForecast = await _api.CurrentWeather(TempLocation),
-                    HrForecast = await _api.HourlyWeather(TempLocation),
-                    DlForecast = await _api.DailyWeather(TempLocation),
+                    CrForecast = await _api.CurrentWeather(TempLocation, await ApiSuccess),
+                    HrForecast = await _api.HourlyWeather(TempLocation, await ApiSuccess),
+                    DlForecast = await _api.DailyWeather(TempLocation, await ApiSuccess),
                 },
 
                 NestedH = new NestedHistory
                 {
-                    History = await _api.HistoryForecast(TempLocation)
+                    History = await _api.HistoryForecast(TempLocation, await ApiSuccess)
                 }
             };
-            ApiSuccess = _api.ApiResponse(url);
+            
             _trend = TrendBuilder(nes);
             await _db.StoreAndUpdate(nes, ApiSuccess);
             return nes;
@@ -97,8 +98,9 @@ namespace WeatherForecast.Pages
         {
             TempLocation = TempData["LastStored"]?.ToString();
             TempData.Keep("LastStored");
+            var checkDbLocation = _forecast.Location.Any(x => x.City == name);
 
-            url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
+            string url = $"https://geocoding-api.open-meteo.com/v1/search?name={name}&count=1&language=en&format=json";
             var getResponse = await _httpClient.GetAsync(url);
 
                 if (getResponse.IsSuccessStatusCode)
@@ -116,7 +118,12 @@ namespace WeatherForecast.Pages
                         message = "Location was not found";                      
                         url = $"https://geocoding-api.open-meteo.com/v1/search?name={TempLocation}&count=1&language=en&format=json";
                     }
-                }            
+            }
+            else if(checkDbLocation)
+            {
+                TempLocation = name;
+                TempData["LastStored"] = name;
+            }            
             return url;
         }
 
@@ -124,9 +131,9 @@ namespace WeatherForecast.Pages
         {
             try
             {
-                url = await LocationApi(name);
+                var url = await LocationApi(name);
                 var getResponse = await _httpClient.GetAsync(url);
-                if (getResponse.IsSuccessStatusCode)
+                if (getResponse.IsSuccessStatusCode && await ApiSuccess)
                 {
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var location = JsonSerializer.Deserialize<NestedForecast>(json);

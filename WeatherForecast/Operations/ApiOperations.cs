@@ -27,12 +27,12 @@ namespace WeatherForecast.Operations
             _fallback = new DbFallback(_forecast);
         }
 
-        public async Task<CurrentViewModel?> CurrentWeather(string TempLocation)
+        public async Task<CurrentViewModel?> CurrentWeather(string TempLocation, bool apiResponse)
         {
             try
             {
                 var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
+                if (getResponse.IsSuccessStatusCode && apiResponse)
                 {
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var currentWeather = JsonSerializer.Deserialize<NestedForecast>(json);
@@ -49,12 +49,12 @@ namespace WeatherForecast.Operations
             }
         }
 
-        public async Task<HourlyViewModel> HourlyWeather(string TempLocation)
+        public async Task<HourlyViewModel> HourlyWeather(string TempLocation, bool apiResponse)
         {
             try
             {
                 var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
+                if (getResponse.IsSuccessStatusCode && apiResponse)
                 {
                     var json = await getResponse.Content.ReadAsStringAsync();
                     var hourlyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
@@ -67,6 +67,44 @@ namespace WeatherForecast.Operations
             catch (TaskCanceledException)
             {
                 return _fallback.HourlyFallback(TempLocation);
+            }
+        }
+        public async Task<DailyViewModel> DailyWeather(string TempLocation, bool apiResponse)
+        {
+            try
+            {
+                var getResponse = await _httpClient.GetAsync(ForecastURL());
+                if (getResponse.IsSuccessStatusCode && apiResponse)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
+                    return dailyWeather.DlForecast;
+                }
+                return _fallback.DailyFallback(TempLocation);
+            }
+            catch (TaskCanceledException)
+            {
+                return _fallback.DailyFallback(TempLocation);
+            }
+        }
+
+        public async Task<HistoryViewModel> HistoryForecast(string TempLocation, bool apiResponse)
+        {
+            try
+            {
+                var getResponse = await _httpClient.GetAsync(HistoryURL());
+                if (getResponse.IsSuccessStatusCode && apiResponse)
+                {
+                    var json = await getResponse.Content.ReadAsStringAsync();
+                    var history = JsonSerializer.Deserialize<NestedHistory>(json);
+                    history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
+                    return history.History;
+                }
+                return _fallback.HistoryFallback(TempLocation);
+            }
+            catch (TaskCanceledException)
+            {
+                return _fallback.HistoryFallback(TempLocation);
             }
         }
         public HourlyViewModel Hours(NestedForecast hourlyWeather)
@@ -92,44 +130,6 @@ namespace WeatherForecast.Operations
             hourlyWeather.HrForecast.Rain = filteredRain;
 
             return hourlyWeather.HrForecast;
-        }
-        public async Task<DailyViewModel> DailyWeather(string TempLocation)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(ForecastURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var dailyWeather = JsonSerializer.Deserialize<NestedForecast>(json);
-                    return dailyWeather.DlForecast;
-                }
-                return _fallback.DailyFallback(TempLocation);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.DailyFallback(TempLocation);
-            }
-        }
-
-        public async Task<HistoryViewModel> HistoryForecast(string TempLocation)
-        {
-            try
-            {
-                var getResponse = await _httpClient.GetAsync(HistoryURL());
-                if (getResponse.IsSuccessStatusCode)
-                {
-                    var json = await getResponse.Content.ReadAsStringAsync();
-                    var history = JsonSerializer.Deserialize<NestedHistory>(json);
-                    history.History.Recorded = history.History.Recorded.OrderByDescending(x => x.Day).ToList();
-                    return history.History;
-                }
-                return _fallback.HistoryFallback(TempLocation);
-            }
-            catch (TaskCanceledException)
-            {
-                return _fallback.HistoryFallback(TempLocation);
-            }
         }
         public string ForecastURL()
         {
