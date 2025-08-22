@@ -29,12 +29,12 @@ namespace WeatherForecast.Operations
         public List<double> AverageTemp(AllWeatherNested nested)
         {
             double total = 0;
-            var dialy = nested.NestedF.DlForecast;
+            var daily = nested.NestedF.DlForecast;
             var history = nested.NestedH.History;
 
-            for (int i = 0; i < history.Temp.Count; i++)
+            for (int i = 0; i < 5; i++)
             {
-                total = (dialy.MaxTempareture[i+1] + history.Temp[i]) / 2;
+                total = (daily.MaxTempareture[i] + history.Temp[i+1]) / 2;
                 TempAvg.Add(Round(total));
             }
 

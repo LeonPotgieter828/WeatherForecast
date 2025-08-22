@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html style="background-image: url('/images/background-weather.png'); background-position: center; background-size: cover">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WeatherForecast.styles.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Mono:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
     @* <header>
@@ -30,8 +33,8 @@
             </div>
         </nav> background-color: #4b63dd
     </header> *@
-    <div style="display: flex; flex-direction: column; width: 100%; height: 100%; padding: 50px">
-        <main role="main" class="pb-3">
+    <div style="display: flex; flex-direction: column; width: 100%; height: 100%; padding: 50px; background-image: url('/images/background-weather.png'); background-position: center; background-size: cover">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
@@ -43,3 +46,19 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+    <style>
+        h1{
+            font-family: ninuto
+        }
+        h2{
+            font-family: ninuto
+        }
+        h3{
+            font-family: ninuto
+        }
+
+        p{
+        font-family: arimo
+        }
+    </style>

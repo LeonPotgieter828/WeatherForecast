@@ -50,6 +50,7 @@ namespace WeatherForecast.Operations
                 WindSpeed = currentTable.WindSpeed,
                 DayOrNight = IsDayOrNight(currentTable.IsDayTime ? 1 : 0),
                 WeatherCodeString = currentTable.WeatherCode,
+                WeatherImage = WeatherImageInt(currentTable.WeatherCode)
             };
             nested.NestedF.CrForecast = currentModel;  
             return currentModel;
@@ -111,6 +112,120 @@ namespace WeatherForecast.Operations
         {
             string dayOrNight = isDay == 1 ? "Day" : "Night";
             return dayOrNight;
+        }
+
+        public string WeatherImage(int code)
+        {
+            string condition = "";
+            switch (code)
+            {
+                case 0:
+                    condition = "images/sun.png";
+                    break;
+                case 1:
+                    condition = "images/sun.png";
+                    break;
+                case 2:
+                    condition = "images/clear-sky.png";
+                    break;
+                case 3:
+                    condition = "images/clouds.png";
+                    break;
+                case 45:
+                    condition = "images/clouds.png";
+                    break;
+                case 48:
+                    condition = "images/clouds.png";
+                    break;
+                case 51:
+                    condition = "images/rain.png";
+                    break;
+                case 53:
+                    condition = "images/rain.png";
+                    break;
+                case 55:
+                    condition = "images/rain.png";
+                    break;
+                case 61:
+                    condition = "images/rain.png";
+                    break;
+                case 62:
+                    condition = "images/rain.png";
+                    break;
+                case 63:
+                    condition = "images/rain.png";
+                    break;
+                case 80:
+                    condition = "images/rain.png";
+                    break;
+                case 81:
+                    condition = "images/rain.png";
+                    break;
+                case 82:
+                    condition = "images/rain.png";
+                    break;
+                case 95:
+                    condition = "images/rain.png";
+                    break;
+            }
+            return condition;
+        }
+
+        public string WeatherImageInt(string code)
+        {
+            string condition = "";
+            switch (code)
+            {
+                case "clear sky":
+                    condition = "images/sun.png";
+                    break;
+                case "Mainly clear":
+                    condition = "images/sun.png";
+                    break;
+                case "partly cloudy":
+                    condition = "images/clear-sky.png";
+                    break;
+                case "overcast":
+                    condition = "images/clouds.png";
+                    break;
+                case "Fog":
+                    condition = "images/clouds.png";
+                    break;
+                case "Rime fog":
+                    condition = "images/clouds.png";
+                    break;
+                case "Light Drizzle":
+                    condition = "images/rain.png";
+                    break;
+                case "Moderate Drizzle":
+                    condition = "images/rain.png";
+                    break;
+                case "Intense Drizzle":
+                    condition = "images/rain.png";
+                    break;
+                case "Slight Rain":
+                    condition = "images/rain.png";
+                    break;
+                case "Moderate Rain":
+                    condition = "images/rain.png";
+                    break;
+                case "Intense Rain":
+                    condition = "images/rain.png";
+                    break;
+                case "Slight Rain Showers":
+                    condition = "images/rain.png";
+                    break;
+                case "Moderate Rain Showers":
+                    condition = "images/rain.png";
+                    break;
+                case "Intense Rain Showers":
+                    condition = "images/rain.png";
+                    break;
+                case "Thunder Storms":
+                    condition = "images/rain.png";
+                    break;
+            }
+            return condition;
         }
     }
 }
