@@ -183,7 +183,7 @@ namespace WeatherForecast.Operations
 
         public string HistoryURL()
         {
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=weather_code,temperature_2m_max,rain_sum,wind_speed_10m_max,temperature_2m_min&current=weather_code&past_days=5&forecast_days=1";
+            string url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&daily=weather_code,temperature_2m_max,rain_sum,wind_speed_10m_max,temperature_2m_min&current=weather_code&past_days=5&forecast_days=";
             return url;
         }
 
